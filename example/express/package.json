@@ -1,0 +1,20 @@
+{
+  "name": "rvlog-express-example",
+  "private": true,
+  "scripts": {
+    "build": "tsc --project tsconfig.json",
+    "predev": "pnpm -C ../.. build && pnpm build",
+    "dev": "node dist/server.js",
+    "prestart": "pnpm -C ../.. build && pnpm build",
+    "start": "node dist/server.js"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "reflect-metadata": "^0.2.2",
+    "rvlog": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.3",
+    "typescript": "^5.7.0"
+  }
+}

@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>rvlog · Vanilla JS Example</title>
+    <style>
+      body { font-family: system-ui, sans-serif; padding: 24px; }
+      button { margin-right: 8px; padding: 6px 12px; }
+      code { background: #f4f4f5; padding: 2px 6px; border-radius: 4px; }
+    </style>
+  </head>
+  <body>
+    <h1>rvlog · Vanilla JS + Sentry</h1>
+    <p>DevTools 콘솔에서 pretty 로그 출력을 확인하세요. INFO/WARN은 Sentry Logs, ERROR는 Issue/Event로 전송됩니다(DSN 설정 시).</p>
+    <button id="info-btn">info log</button>
+    <button id="warn-btn">warn log</button>
+    <button id="context-btn">context log</button>
+    <button id="error-btn">error + Sentry</button>
+    <p>status: <code id="status">idle</code></p>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

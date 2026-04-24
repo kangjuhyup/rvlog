@@ -1,0 +1,21 @@
+{
+  "name": "rvlog-vanilla-example",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "predev": "pnpm -C ../.. build",
+    "dev": "vite",
+    "prestart": "pnpm -C ../.. build",
+    "start": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@sentry/browser": "^10.10.0",
+    "rvlog": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0",
+    "vite": "^5.4.10"
+  }
+}

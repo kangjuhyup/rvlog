@@ -1,0 +1,201 @@
+# rvlog
+
+데코레이터, 민감정보 마스킹, 에러 알림을 제공하는 프레임워크 독립형 TypeScript 로깅 라이브러리입니다.
+
+## 주요 기능
+
+- `@Logging` 데코레이터로 진입, 완료, 에러, duration 자동 로깅
+- 클래스 없이도 쓸 수 있는 `withLogging()`
+- 이름, 이메일, 전화번호, 비밀번호 등을 가릴 수 있는 `@MaskLog`
+- 헬스체크나 고빈도 메서드를 제외하는 `@NoLog`
+- Slack, Discord, Webhook, Sentry 채널을 붙일 수 있는 `NotificationManager`
+- Node.js 환경에서 파일 저장과 rotate를 지원하는 `FileTransport`
+
+## 설치
+
+코어 패키지 기준 최소 요구 사항:
+
+- `Node.js 18+`
+- `TypeScript 5.7+`
+
+```bash
+pnpm add rvlog reflect-metadata
+```
+
+선택 의존성:
+
+```bash
+pnpm add @sentry/browser
+```
+
+관련 패키지:
+
+```bash
+pnpm add rvlog-react
+pnpm add rvlog-nest
+```
+
+참고:
+
+- `@Logging`, `@MaskLog`, `rvlog-nest`처럼 메타데이터 기반 기능을 사용할 때는 `reflect-metadata`가 필요합니다.
+- 프레임워크 어댑터는 코어 `rvlog` 최소 요구 사항 외에 별도 런타임 조건이 있을 수 있습니다.
+
+## 기본 사용법
+
+데코레이터를 사용할 때는 앱 시작 지점에서 `reflect-metadata`를 한 번 먼저 import 하세요.
+
+```ts
+import "reflect-metadata";
+import { Logger, Logging, LogLevel, MaskLog, NoLog } from "rvlog";
+
+Logger.configure({
+  minLevel: LogLevel.INFO,
+  pretty: true,
+  serialize: {
+    maxStringLength: 200,
+    maxArrayLength: 20,
+    maxObjectKeys: 30,
+    maxDepth: 4,
+  },
+});
+
+class CreateUserDto {
+  @MaskLog({ type: "name" })
+  name!: string;
+
+  @MaskLog({ type: "email" })
+  email!: string;
+}
+
+@Logging
+class UserService {
+  declare logger: Logger;
+
+  async create(dto: CreateUserDto) {
+    this.logger.info("manual log before create");
+    return { id: 1, ...dto };
+  }
+
+  @NoLog
+  healthCheck() {
+    return "ok";
+  }
+}
+```
+
+## 함수형 사용법
+
+클래스 데코레이터 대신 함수 단위로 동일한 자동 로깅을 적용하고 싶다면 `withLogging()`을 사용하면 됩니다.
+
+```ts
+import { MaskLog, withLogging } from "rvlog";
+
+class SignupInput {
+  @MaskLog({ type: "email" })
+  email!: string;
+
+  @MaskLog({ type: "full" })
+  password!: string;
+}
+
+async function signupImpl(input: SignupInput) {
+  return { id: crypto.randomUUID() };
+}
+
+export const signup = withLogging(signupImpl, {
+  context: "signup",
+});
+```
+
+## Node.js 파일 로그
+
+파일 저장 기능은 Node 런타임에서만 `rvlog/node`를 import 하세요.
+
+```ts
+import "reflect-metadata";
+import { Logger, LogLevel } from "rvlog";
+import { FileTransport } from "rvlog/node";
+
+Logger.configure({
+  minLevel: LogLevel.INFO,
+  pretty: true,
+  transports: [
+    new FileTransport({
+      enabled: true,
+      dirPath: "logs",
+      fileName: "rvlog.log",
+      rotate: {
+        type: "size",
+        maxSizeBytes: 1024 * 1024,
+        maxFiles: 3,
+      },
+    }),
+  ],
+});
+```
+
+## Payload 길이 제한
+
+너무 큰 payload를 그대로 로그에 남기면 노이즈와 비용이 커질 수 있습니다. `rvlog`는 문자열, 배열, 객체, 깊은 중첩 값을 로그 전에 잘라낼 수 있습니다.
+
+```ts
+Logger.configure({
+  pretty: true,
+  serialize: {
+    maxStringLength: 200,
+    maxArrayLength: 20,
+    maxObjectKeys: 30,
+    maxDepth: 4,
+    truncateSuffix: "...<truncated>",
+  },
+});
+```
+
+이 직렬화 정책은 다음 경로에 공통으로 적용됩니다.
+
+- `Logger.info(...)`
+- `@Logging`
+- `withLogging()`
+
+## 알림 연동
+
+`NotificationManager`와 기본 채널을 조합해서 외부 서비스로 로그를 보낼 수 있습니다.
+
+- `SentryChannel`
+- `SlackChannel`
+- `DiscordChannel`
+- `WebhookChannel`
+
+`SentryChannel`은 두 가지 전송 모드를 지원합니다.
+
+- `mode: 'event'`: `captureMessage` / `captureException` 기반
+- `mode: 'log'`: `enableLogs: true`와 함께 쓰는 `Sentry.logger.*` 기반
+
+추가로 아래 옵션으로 분리 라우팅도 지원합니다.
+
+- `eventLevels`: Issue/Event로 수집할 레벨
+- `logLevels`: Sentry Logs로 수집할 레벨
+
+관련 패키지 문서에 실제 연동 예시가 정리돼 있습니다.
+
+- [packages/rvlog-react/README-KR.md](./packages/rvlog-react/README-KR.md)
+- [packages/rvlog-nest/README-KR.md](./packages/rvlog-nest/README-KR.md)
+
+## 예제
+
+- [example/README.md](./example/README.md)
+- `example/basic`: 순수 TypeScript + 데코레이터
+- `example/express`: Express
+- `example/nestjs`: NestJS
+- `example/react`: React + hooks
+- `example/vanilla`: 브라우저 TypeScript + `withLogging()`
+
+문제 해결 문서:
+
+- [FAQ-KR.md](./FAQ-KR.md)
+
+## 벤치마크 리포트
+
+성능 측정 결과는 아래 문서에 있습니다.
+
+- [benchmark/REPORT-KR.md](./benchmark/REPORT-KR.md)

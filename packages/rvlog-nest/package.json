@@ -1,0 +1,35 @@
+{
+  "name": "rvlog-nest",
+  "version": "0.1.0",
+  "description": "NestJS integration for rvlog",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "pack:check": "npm pack --dry-run",
+    "prepublishOnly": "pnpm build"
+  },
+  "license": "MIT",
+  "peerDependencies": {
+    "@nestjs/common": "^10.0.0 || ^11.0.0",
+    "@nestjs/core": "^10.0.0 || ^11.0.0",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.0.0",
+    "rvlog": "^0.1.0"
+  },
+  "devDependencies": {
+    "@nestjs/common": "^11.1.0",
+    "@nestjs/core": "^11.1.0",
+    "rxjs": "^7.8.2",
+    "typescript": "^5.7.0"
+  }
+}

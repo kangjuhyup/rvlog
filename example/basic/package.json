@@ -1,0 +1,18 @@
+{
+  "name": "rvlog-basic-example",
+  "private": true,
+  "scripts": {
+    "build": "tsc --project tsconfig.json",
+    "predev": "pnpm -C ../.. build && pnpm build",
+    "dev": "node dist/main.js",
+    "prestart": "pnpm -C ../.. build && pnpm build",
+    "start": "node dist/main.js"
+  },
+  "dependencies": {
+    "reflect-metadata": "^0.2.2",
+    "rvlog": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0"
+  }
+}

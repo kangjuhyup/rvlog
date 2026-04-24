@@ -1,0 +1,9 @@
+import { MaskLog } from 'rvlog';
+
+export class CreateUserDto {
+  @MaskLog({ type: 'name' })
+  name!: string;
+
+  @MaskLog({ type: 'email' })
+  email!: string;
+}
