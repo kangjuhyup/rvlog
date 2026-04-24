@@ -1,6 +1,7 @@
 import 'reflect-metadata';
 import * as Sentry from '@sentry/browser';
 import {
+  createLoggerSystem,
   Logger,
   LogLevel,
   NotificationManager,
@@ -73,8 +74,12 @@ const notification = new NotificationManager().addRule({
   },
 });
 
-Logger.configure({
+const loggerOptions = {
   minLevel: LogLevel.DEBUG,
   pretty: true,
   notification,
-});
+};
+
+export const appLoggerSystem = createLoggerSystem(loggerOptions);
+
+Logger.configure(loggerOptions);

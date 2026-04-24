@@ -1,5 +1,6 @@
 import * as Sentry from '@sentry/browser';
 import {
+  createLoggerSystem,
   Logger,
   LogLevel,
   NotificationManager,
@@ -60,6 +61,12 @@ const notification = new NotificationManager().addRule({
   }),
   levels: [LogLevel.INFO, LogLevel.WARN, LogLevel.ERROR],
   cooldownMs: 10_000,
+});
+
+export const appLoggerSystem = createLoggerSystem({
+  minLevel: LogLevel.DEBUG,
+  pretty: true,
+  notification,
 });
 
 Logger.configure({

@@ -1,13 +1,12 @@
 import {
   createLoggerSystem,
-  Logger,
   LogLevel,
   NotificationManager,
   SlackChannel,
 } from 'rvlog';
 import { FileTransport } from 'rvlog/node';
 
-const loggerOptions = {
+export const nestLoggerOptions = {
   minLevel: LogLevel.INFO,
   pretty: true,
   notification: new NotificationManager().addRule({
@@ -24,16 +23,12 @@ const loggerOptions = {
     new FileTransport({
       enabled: true,
       dirPath: 'logs',
-      fileName: 'express.log',
+      fileName: 'nestjs.log',
       rotate: {
-        type: 'size',
-        maxSizeBytes: 2 * 1024 * 1024,
-        maxFiles: 5,
+        type: 'daily',
       },
     }),
   ],
 };
 
-export const appLoggerSystem = createLoggerSystem(loggerOptions);
-
-Logger.configure(loggerOptions);
+export const nestLoggerSystem = createLoggerSystem(nestLoggerOptions);

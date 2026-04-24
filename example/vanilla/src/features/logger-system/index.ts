@@ -1,0 +1,1 @@
+export { vanillaLoggerSystem } from './setup';

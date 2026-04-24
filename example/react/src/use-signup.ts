@@ -1,7 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import * as Sentry from "@sentry/browser";
 import { useHookLogging } from "rvlog-react";
 import { LogLevel, MaskLog } from "rvlog";
+import {
+  logReactInfoExample,
+  logReactWarnExample,
+  logSignupSuccessMetrics,
+} from "./features/structured-metadata";
+import { attachSignupUserToSentry } from "./features/sentry-context";
+import { reactLoggerSystem } from "./features/logger-system";
 
 export class SignupInput {
   @MaskLog({ type: "email" })
@@ -31,7 +37,7 @@ export function useSignup() {
   const [userId, setUserId] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [nickname, setNickname] = useState<string | null>(null);
-  const { run, traceState } = useHookLogging("useSignup");
+  const { run, traceState } = useHookLogging("useSignup", { system: reactLoggerSystem });
 
   useEffect(() => {
     traceState("status", status);
@@ -46,11 +52,7 @@ export function useSignup() {
       return;
     }
 
-    Sentry.setUser({
-      id: userId,
-      email: userEmail,
-      username: nickname ?? undefined,
-    });
+    attachSignupUserToSentry(userId, userEmail, nickname);
   }, [nickname, userEmail, userId]);
 
   const signupRequest = useMemo(
@@ -65,6 +67,7 @@ export function useSignup() {
         setUserEmail(input.email);
         setNickname(input.nickname);
         setStatus("success");
+        logSignupSuccessMetrics(result.id, input.email, input.nickname);
         return result;
       }),
     [run],
@@ -83,6 +86,7 @@ export function useSignup() {
     () =>
       run("emitInfo", async (): Promise<void> => {
         await new Promise((resolve) => setTimeout(resolve, 40));
+        logReactInfoExample();
       }),
     [run],
   );
@@ -93,6 +97,7 @@ export function useSignup() {
         "emitWarn",
         async (): Promise<void> => {
           await new Promise((resolve) => setTimeout(resolve, 40));
+          logReactWarnExample();
         },
         LogLevel.WARN,
       ),

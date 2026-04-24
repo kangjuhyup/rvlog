@@ -1,36 +1,16 @@
 import { Module } from '@nestjs/common';
-import { LogLevel, NotificationManager, SlackChannel } from 'rvlog';
-import { FileTransport } from 'rvlog/node';
 import { RvlogNestModule } from 'rvlog-nest';
+import {
+  nestLoggerOptions,
+  nestLoggerSystem,
+} from './features/logger-system';
 import { UserModule } from './user.module';
 
 @Module({
   imports: [
     RvlogNestModule.forRoot({
-      logger: {
-        minLevel: LogLevel.INFO,
-        pretty: true,
-        notification: new NotificationManager().addRule({
-          channel: new SlackChannel(process.env.SLACK_WEBHOOK_URL ?? 'https://hooks.slack.com/services/example'),
-          levels: [LogLevel.ERROR],
-          cooldownMs: 60_000,
-          circuitBreaker: {
-            failureThreshold: 3,
-            recoveryTimeMs: 30_000,
-            timeoutMs: 5_000,
-          },
-        }),
-        transports: [
-          new FileTransport({
-            enabled: true,
-            dirPath: 'logs',
-            fileName: 'nestjs.log',
-            rotate: {
-              type: 'daily',
-            },
-          }),
-        ],
-      },
+      loggerSystem: nestLoggerSystem,
+      logger: nestLoggerOptions,
       http: {
         excludePaths: ['/health'],
       },

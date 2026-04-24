@@ -1,7 +1,7 @@
-import { Logger, LogLevel } from 'rvlog';
+import { createLoggerSystem, Logger, LogLevel } from 'rvlog';
 import { FileTransport } from 'rvlog/node';
 
-Logger.configure({
+const loggerOptions = {
   minLevel: LogLevel.INFO,
   pretty: true,
   transports: [
@@ -16,4 +16,8 @@ Logger.configure({
       },
     }),
   ],
-});
+};
+
+export const appLoggerSystem = createLoggerSystem(loggerOptions);
+
+Logger.configure(loggerOptions);

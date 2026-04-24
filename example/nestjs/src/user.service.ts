@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Logger, Logging } from 'rvlog';
 import { CreateUserDto } from './create-user.dto';
+import { logNestUserCreated } from './features/structured-metadata';
 
 @Logging
 @Injectable()
@@ -13,6 +14,9 @@ export class UserService {
 
   async create(dto: CreateUserDto) {
     this.logger.info('before repository save');
-    return { id: 1, ...dto };
+    const createdUser = { id: 1, ...dto };
+
+    logNestUserCreated(createdUser);
+    return createdUser;
   }
 }
