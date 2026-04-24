@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { join } from 'node:path';
 import type { LogRecord } from '../log/logger';
 import { buildDateToken, parseRecordDate, resolveRotatedFilePath } from './file-transport.utils';
 
@@ -29,8 +30,8 @@ describe('file transport utils', () => {
   });
 
   it('resolves daily/hourly/plain rotated file paths - rotate 타입별 파일 경로를 만든다', () => {
-    expect(resolveRotatedFilePath(record, 'logs', 'app.log', 'daily')).toBe('logs\\app-2026-04-24.log');
-    expect(resolveRotatedFilePath(record, 'logs', 'app.log', 'hourly')).toBe('logs\\app-2026-04-24-11.log');
-    expect(resolveRotatedFilePath(record, 'logs', 'app.log')).toBe('logs\\app.log');
+    expect(resolveRotatedFilePath(record, 'logs', 'app.log', 'daily')).toBe(join('logs', 'app-2026-04-24.log'));
+    expect(resolveRotatedFilePath(record, 'logs', 'app.log', 'hourly')).toBe(join('logs', 'app-2026-04-24-11.log'));
+    expect(resolveRotatedFilePath(record, 'logs', 'app.log')).toBe(join('logs', 'app.log'));
   });
 });

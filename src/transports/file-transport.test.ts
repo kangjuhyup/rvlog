@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { join } from 'node:path';
 import type { LogRecord } from '../log/logger';
 
 const {
@@ -56,7 +57,7 @@ describe('FileTransport', () => {
 
     // Then: 디렉터리를 만들고 app.log에 줄바꿈과 함께 append 한다.
     expect(mkdirMock).toHaveBeenCalledWith('logs', { recursive: true });
-    expect(appendFileMock).toHaveBeenCalledWith('logs\\app.log', 'formatted line\n', 'utf8');
+    expect(appendFileMock).toHaveBeenCalledWith(join('logs', 'app.log'), 'formatted line\n', 'utf8');
   });
 
   it('rotates existing files before append when size limit is exceeded - 크기 제한을 넘기면 append 전에 rotate 한다', async () => {
@@ -78,11 +79,11 @@ describe('FileTransport', () => {
     await transport.write(baseRecord, '1234567890');
 
     // Then: 기존 파일을 순차적으로 밀어내고 새 로그를 append 한다.
-    expect(rmMock).toHaveBeenCalledWith('logs\\app.log.3', { force: true });
-    expect(renameMock).toHaveBeenCalledWith('logs\\app.log.2', 'logs\\app.log.3');
-    expect(renameMock).toHaveBeenCalledWith('logs\\app.log.1', 'logs\\app.log.2');
-    expect(renameMock).toHaveBeenCalledWith('logs\\app.log', 'logs\\app.log.1');
-    expect(appendFileMock).toHaveBeenCalledWith('logs\\app.log', '1234567890\n', 'utf8');
+    expect(rmMock).toHaveBeenCalledWith(`${join('logs', 'app.log')}.3`, { force: true });
+    expect(renameMock).toHaveBeenCalledWith(`${join('logs', 'app.log')}.2`, `${join('logs', 'app.log')}.3`);
+    expect(renameMock).toHaveBeenCalledWith(`${join('logs', 'app.log')}.1`, `${join('logs', 'app.log')}.2`);
+    expect(renameMock).toHaveBeenCalledWith(join('logs', 'app.log'), `${join('logs', 'app.log')}.1`);
+    expect(appendFileMock).toHaveBeenCalledWith(join('logs', 'app.log'), '1234567890\n', 'utf8');
   });
 
   it('uses a date-suffixed file name for daily rotation - daily rotate면 날짜가 붙은 파일명을 사용한다', async () => {
@@ -100,7 +101,7 @@ describe('FileTransport', () => {
     await transport.write(baseRecord, 'formatted line');
 
     // Then: 해당 날짜가 반영된 파일명으로 append 한다.
-    expect(appendFileMock).toHaveBeenCalledWith('logs\\app-2026-04-10.log', 'formatted line\n', 'utf8');
+    expect(appendFileMock).toHaveBeenCalledWith(join('logs', 'app-2026-04-10.log'), 'formatted line\n', 'utf8');
   });
 
   it('skips rotation when size rotate has no maxSizeBytes - size rotate에 maxSizeBytes가 없으면 회전을 건너뛴다', async () => {
@@ -154,7 +155,7 @@ describe('FileTransport', () => {
     await transport.write(baseRecord, 'line');
 
     // Then: 날짜-시간이 반영된 파일명으로 append 한다.
-    expect(appendFileMock).toHaveBeenCalledWith('logs\\app-2026-04-10-12.log', 'line\n', 'utf8');
+    expect(appendFileMock).toHaveBeenCalledWith(join('logs', 'app-2026-04-10-12.log'), 'line\n', 'utf8');
   });
 
   it('falls back to the current date when the record timestamp is malformed - 잘못된 타임스탬프는 현재 시각으로 대체한다', () => {
@@ -180,6 +181,6 @@ describe('FileTransport', () => {
     });
 
     // When / Then: 기본 파일 경로를 그대로 사용한다.
-    expect(transport.resolveFilePath(baseRecord)).toBe('logs\\app.log');
+    expect(transport.resolveFilePath(baseRecord)).toBe(join('logs', 'app.log'));
   });
 });
