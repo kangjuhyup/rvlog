@@ -44,6 +44,7 @@ jobs:
         run: pnpm run pack:check:all
 
       - name: Create release PR or publish
+        id: changesets
         uses: changesets/action@v1
         with:
           version: pnpm run changeset:version
@@ -53,3 +54,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create git tag for published root version
+        if: steps.changesets.outputs.published == 'true'
+        shell: bash
+        run: |
+          VERSION="v$(node -p "require('./package.json').version")"
+          git tag "$VERSION"
+          git push origin "$VERSION"
