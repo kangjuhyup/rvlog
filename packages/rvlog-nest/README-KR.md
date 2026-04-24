@@ -16,7 +16,9 @@
 ## 설치
 
 ```bash
+npm install rvlog rvlog-nest reflect-metadata
 pnpm add rvlog rvlog-nest reflect-metadata
+yarn add rvlog rvlog-nest reflect-metadata
 ```
 
 ## 사용법

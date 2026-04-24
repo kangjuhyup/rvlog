@@ -30,7 +30,8 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "pack:check": "npm pack --dry-run",
-    "prepublishOnly": "pnpm build",
+    "pack:check:all": "npm run pack:check && npm --prefix packages/rvlog-react run pack:check && npm --prefix packages/rvlog-nest run pack:check",
+    "prepublishOnly": "npm run build",
     "benchmark": "tsc --project tsconfig.benchmark.json && node dist-benchmark/benchmark/index.js",
     "example:basic": "pnpm -C example/basic dev",
     "example:express": "pnpm -C example/express dev",
@@ -47,7 +48,14 @@
   ],
   "author": "",
   "license": "MIT",
-  "packageManager": "pnpm@10.33.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kangjuhyup/rvlog.git"
+  },
+  "homepage": "https://github.com/kangjuhyup/rvlog#readme",
+  "bugs": {
+    "url": "https://github.com/kangjuhyup/rvlog/issues"
+  },
   "dependencies": {
     "reflect-metadata": "^0.2.2"
   },

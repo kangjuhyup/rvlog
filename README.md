@@ -19,20 +19,25 @@ Minimum requirements for the core package:
 - `TypeScript 5.7+`
 
 ```bash
+npm install rvlog reflect-metadata
 pnpm add rvlog reflect-metadata
+yarn add rvlog reflect-metadata
 ```
 
 Optional integrations:
 
 ```bash
+npm install @sentry/browser
 pnpm add @sentry/browser
+yarn add @sentry/browser
 ```
 
 Related packages:
 
 ```bash
-pnpm add rvlog-react
-pnpm add rvlog-nest
+npm install rvlog-react rvlog-nest
+pnpm add rvlog-react rvlog-nest
+yarn add rvlog-react rvlog-nest
 ```
 
 Notes:
