@@ -1,4 +1,5 @@
-import { LogLevel, Logger, maskObject } from 'rvlog';
+import { LogLevel, Logger, type LoggerLike, type LoggerSystem, maskObject } from 'rvlog';
+import type { LogContext } from 'rvlog';
 
 export function buildLogDuration(startTime: number): string {
   return `${(performance.now() - startTime).toFixed(2)}ms`;
@@ -35,7 +36,7 @@ export function stringifyLoggingValue(value: unknown): string {
 }
 
 export function logAtLevel(
-  logger: Logger,
+  logger: LoggerLike,
   level: LogLevel,
   message: string,
   ...args: unknown[]
@@ -62,13 +63,16 @@ export function notifyLoggedError(
   args: unknown[],
   error: Error,
   duration: string,
+  notifier: Pick<typeof Logger, 'notify'> | Pick<LoggerSystem, 'notify'> = Logger,
 ): void {
-  Logger.notify(LogLevel.ERROR, `${name}() failed (${duration}) ${error.name}: ${error.message}`, {
+  const payload: LogContext = {
     className: context,
     methodName: name,
     args,
     error,
     duration,
     timestamp: new Date(),
-  });
+  };
+
+  notifier.notify(LogLevel.ERROR, `${name}() failed (${duration}) ${error.name}: ${error.message}`, payload);
 }

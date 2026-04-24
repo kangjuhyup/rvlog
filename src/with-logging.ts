@@ -1,4 +1,4 @@
-import { Logger } from './log/logger';
+import { Logger, type LoggerSystem } from './log/logger';
 import {
   buildCalledLogMessage,
   buildCompletedLogMessage,
@@ -13,6 +13,8 @@ export interface WithLoggingOptions {
   context: string;
   /** Optional function name override. Falls back to `fn.name` or `anonymous`. */
   name?: string;
+  /** Optional isolated logger system. Falls back to global Logger configuration. */
+  system?: LoggerSystem;
 }
 
 /**
@@ -34,11 +36,11 @@ export function withLogging<TArgs extends unknown[], TResult>(
   fn: (...args: TArgs) => TResult,
   options: WithLoggingOptions,
 ): (...args: TArgs) => TResult {
-  const { context } = options;
+  const { context, system } = options;
   const name = options.name ?? (fn.name || 'anonymous');
 
   return function wrapped(this: unknown, ...args: TArgs): TResult {
-    const logger = new Logger(context);
+    const logger = system?.createLogger(context) ?? new Logger(context);
     const startTime = performance.now();
     const maskedArgs = args.map((arg) => maskLoggingValue(arg));
 
@@ -58,7 +60,7 @@ export function withLogging<TArgs extends unknown[], TResult>(
             const duration = buildLogDuration(startTime);
 
             logger.error(buildFailedLogMessage(name, startTime), normalizedError);
-            notifyLoggedError(context, name, maskedArgs, normalizedError, duration);
+            notifyLoggedError(context, name, maskedArgs, normalizedError, duration, system ?? Logger);
             throw error;
           }) as TResult;
       }
@@ -70,7 +72,7 @@ export function withLogging<TArgs extends unknown[], TResult>(
       const duration = buildLogDuration(startTime);
 
       logger.error(buildFailedLogMessage(name, startTime), normalizedError);
-      notifyLoggedError(context, name, maskedArgs, normalizedError, duration);
+      notifyLoggedError(context, name, maskedArgs, normalizedError, duration, system ?? Logger);
       throw error;
     }
   };

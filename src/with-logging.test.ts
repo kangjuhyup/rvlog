@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { Logger } from './log/logger';
+import { createLoggerSystem, Logger } from './log/logger';
 import { MaskLog } from './decorators/mask-log.decorator';
 import { withLogging } from './with-logging';
 
@@ -164,5 +164,24 @@ describe('withLogging', () => {
 
     // Then: 원본 함수의 this가 유지된다.
     expect(result).toBe(7);
+  });
+
+  it('uses the provided LoggerSystem instead of the global Logger for notifications - 주입된 LoggerSystem으로 알림을 보낸다', () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(console, 'info').mockImplementation(() => {});
+    const globalNotifySpy = vi.spyOn(Logger, 'notify').mockImplementation(() => {});
+    const system = createLoggerSystem();
+    const systemNotifySpy = vi.spyOn(system, 'notify');
+
+    const wrapped = withLogging(
+      () => {
+        throw new Error('system boom');
+      },
+      { context: 'svc', name: 'failWithSystem', system },
+    );
+
+    expect(() => wrapped()).toThrow('system boom');
+    expect(globalNotifySpy).not.toHaveBeenCalled();
+    expect(systemNotifySpy).toHaveBeenCalledTimes(1);
   });
 });

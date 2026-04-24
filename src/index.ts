@@ -7,7 +7,12 @@ import 'reflect-metadata';
  */
 export {
   Logger,
+  type LoggerLike,
+  LoggerSystem,
+  ScopedLogger,
+  createLoggerSystem,
   type LoggerOptions,
+  type LoggerContextResolver,
   type LoggerContextValue,
   type LogRecord,
   type LogFormatter,

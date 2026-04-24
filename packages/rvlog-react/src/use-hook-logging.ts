@@ -1,5 +1,5 @@
 import { useCallback, useEffect } from 'react';
-import { LogLevel, Logger } from 'rvlog';
+import { LogLevel, Logger, type LoggerSystem, type ScopedLogger } from 'rvlog';
 import {
   buildCompletedLogMessage,
   buildFailedLogMessage,
@@ -12,7 +12,7 @@ import {
 import { useLogger } from './use-logger';
 
 export interface UseHookLoggingResult {
-  logger: Logger;
+  logger: ScopedLogger;
   traceState: (name: string, value: unknown) => void;
   run: <TArgs extends unknown[], TResult>(
     name: string,
@@ -21,12 +21,16 @@ export interface UseHookLoggingResult {
   ) => (...args: TArgs) => TResult;
 }
 
+export interface UseHookLoggingOptions {
+  system?: LoggerSystem;
+}
+
 /**
  * 커스텀 훅 단위 로깅을 위한 React 전용 헬퍼.
  * 훅 생명주기, 액션 수행, 상태 변경을 한 경계에서 기록한다.
  */
-export function useHookLogging(context: string): UseHookLoggingResult {
-  const logger = useLogger(context);
+export function useHookLogging(context: string, options: UseHookLoggingOptions = {}): UseHookLoggingResult {
+  const logger = useLogger(context, options.system);
 
   useEffect(() => {
     logger.info('hook mounted');
@@ -71,7 +75,7 @@ export function useHookLogging(context: string): UseHookLoggingResult {
                 const duration = buildLogDuration(startTime);
 
                 logger.error(buildFailedLogMessage(name, startTime), normalizedError);
-                notifyLoggedError(context, name, maskedArgs, normalizedError, duration);
+                notifyLoggedError(context, name, maskedArgs, normalizedError, duration, options.system ?? Logger);
                 throw error;
               }) as TResult;
           }
@@ -84,11 +88,11 @@ export function useHookLogging(context: string): UseHookLoggingResult {
           const duration = buildLogDuration(startTime);
 
           logger.error(buildFailedLogMessage(name, startTime), normalizedError);
-          notifyLoggedError(context, name, maskedArgs, normalizedError, duration);
+          notifyLoggedError(context, name, maskedArgs, normalizedError, duration, options.system ?? Logger);
           throw error;
         }
       },
-    [context, logger],
+    [context, logger, options.system],
   );
 
   return { logger, traceState, run };

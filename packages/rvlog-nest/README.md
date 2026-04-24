@@ -106,3 +106,32 @@ RvlogNestModule.forRoot({
   },
 })
 ```
+# Using LoggerSystem in NestJS
+
+`RvlogNestModule.forRoot(...)` can still configure the global `Logger`, but you
+can also inject an isolated `LoggerSystem`.
+
+```ts
+import { createLoggerSystem, LogLevel } from 'rvlog';
+import { RvlogNestModule } from 'rvlog-nest';
+
+const system = createLoggerSystem({
+  minLevel: LogLevel.INFO,
+});
+
+@Module({
+  imports: [
+    RvlogNestModule.forRoot({
+      loggerSystem: system,
+      logger: { minLevel: LogLevel.INFO },
+      http: { context: 'HTTP' },
+    }),
+  ],
+})
+export class AppModule {}
+```
+
+When `loggerSystem` is provided:
+- Nest HTTP logging uses that isolated runtime
+- `stringify`, `notify`, and context resolution also use that runtime
+- global `Logger.configure(...)` is not required

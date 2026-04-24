@@ -264,4 +264,33 @@ describe('useHookLogging', () => {
       }),
     );
   });
+
+  it('run은 주입된 LoggerSystem으로 알림을 보낸다', () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(console, 'info').mockImplementation(() => {});
+    const system = {
+      createLogger: (_context: string) => ({
+        debug: vi.fn(),
+        info: vi.fn(),
+        warn: vi.fn(),
+        error: vi.fn(),
+      }),
+      notify: vi.fn(),
+    };
+    const systemNotifySpy = vi.spyOn(system, 'notify');
+    const globalNotifySpy = vi.spyOn(Logger, 'notify').mockImplementation(() => {});
+
+    const { result } = renderHook(() => useHookLogging('TestHook', { system: system as never }));
+
+    let wrapped: () => never;
+    act(() => {
+      wrapped = result.current.run('failWithSystem', () => {
+        throw new Error('system failure');
+      });
+    });
+
+    expect(() => wrapped!()).toThrow('system failure');
+    expect(globalNotifySpy).not.toHaveBeenCalled();
+    expect(systemNotifySpy).toHaveBeenCalledTimes(1);
+  });
 });

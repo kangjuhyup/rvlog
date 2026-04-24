@@ -1,6 +1,7 @@
 import { LogLevel } from './log-level';
-import { Logger } from './logger';
+import { Logger, type LoggerLike, type LoggerSystem } from './logger';
 import { maskObject } from '../masker/masker';
+import type { LogContext } from '../notification/notification-channel';
 
 type MetadataType = { prototype?: object | null };
 
@@ -63,7 +64,7 @@ export function stringifyLoggingValue(value: unknown): string {
 
 /** Dispatches a message to the corresponding logger method for the given level. */
 export function logAtLevel(
-  logger: Logger,
+  logger: LoggerLike,
   level: LogLevel,
   message: string,
   ...args: unknown[]
@@ -91,13 +92,16 @@ export function notifyLoggedError(
   args: unknown[],
   error: Error,
   duration: string,
+  notifier: Pick<typeof Logger, 'notify'> | Pick<LoggerSystem, 'notify'> = Logger,
 ): void {
-  Logger.notify(LogLevel.ERROR, `${name}() failed (${duration}) ${error.name}: ${error.message}`, {
+  const payload: LogContext = {
     className: context,
     methodName: name,
     args,
     error,
     duration,
     timestamp: new Date(),
-  });
+  };
+
+  notifier.notify(LogLevel.ERROR, `${name}() failed (${duration}) ${error.name}: ${error.message}`, payload);
 }

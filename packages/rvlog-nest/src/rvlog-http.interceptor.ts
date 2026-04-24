@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { Observable } from 'rxjs';
-import { LogLevel, Logger, type LoggerContextValue } from 'rvlog';
+import { LogLevel, Logger, LoggerSystem, type LoggerContextValue } from 'rvlog';
 import {
   buildDuration,
   buildRequestPayload,
@@ -33,6 +33,7 @@ export interface RvlogHttpLoggingOptions {
 }
 
 export const RVLOG_HTTP_LOGGING_OPTIONS = Symbol('RVLOG_HTTP_LOGGING_OPTIONS');
+export const RVLOG_HTTP_LOGGER_SYSTEM = Symbol('RVLOG_HTTP_LOGGER_SYSTEM');
 
 type HttpLikeRequest = {
   method?: string;
@@ -58,11 +59,15 @@ export class RvlogHttpInterceptor implements NestInterceptor {
     @Optional()
     @Inject(RVLOG_HTTP_LOGGING_OPTIONS)
     options?: RvlogHttpLoggingOptions,
+    @Optional()
+    @Inject(RVLOG_HTTP_LOGGER_SYSTEM)
+    private readonly loggerSystem?: LoggerSystem | null,
   ) {
     this.options = resolveHttpLoggingOptions(options);
-    const previousResolver = Logger.getContextResolver();
+    const runtime = this.loggerSystem ?? Logger;
+    const previousResolver = runtime.getContextResolver();
 
-    Logger.setContextResolver(() => ({
+    runtime.setContextResolver(() => ({
       ...previousResolver?.(),
       ...requestContextStorage.getStore(),
     }));
@@ -82,12 +87,13 @@ export class RvlogHttpInterceptor implements NestInterceptor {
       return next.handle();
     }
 
-    const logger = new Logger(this.options.context);
+    const runtime = this.loggerSystem ?? Logger;
+    const logger = this.loggerSystem?.createLogger(this.options.context) ?? new Logger(this.options.context);
     const startTime = performance.now();
     const method = request.method ?? 'HTTP';
     const parameterTypes = getHandlerParameterTypes(context);
     const requestPayload = buildRequestPayload(context, request, parameterTypes, this.options);
-    const requestSuffix = Object.keys(requestPayload).length > 0 ? ` ${Logger.stringify(requestPayload)}` : '';
+    const requestSuffix = Object.keys(requestPayload).length > 0 ? ` ${runtime.stringify(requestPayload)}` : '';
     const requestId = resolveRequestId(request, this.options.requestIdHeader);
 
     if (this.options.setResponseHeader) {
@@ -105,8 +111,8 @@ export class RvlogHttpInterceptor implements NestInterceptor {
             const responsePayload = buildResponsePayload(responseBody, this.options);
 
             if (responsePayload) {
-              logger.info(
-                `${method} ${path} completed ${statusCode} (${duration}) ${Logger.stringify(responsePayload)}`,
+                logger.info(
+                `${method} ${path} completed ${statusCode} (${duration}) ${runtime.stringify(responsePayload)}`,
               );
             } else {
               logger.info(`${method} ${path} completed ${statusCode} (${duration})`);
@@ -120,7 +126,7 @@ export class RvlogHttpInterceptor implements NestInterceptor {
             const statusCode = response.statusCode ?? 500;
 
             logger.error(`${method} ${path} failed ${statusCode} (${duration})`, normalizedError);
-            Logger.notify(LogLevel.ERROR, `${method} ${path} failed ${statusCode} (${duration})`, {
+            runtime.notify(LogLevel.ERROR, `${method} ${path} failed ${statusCode} (${duration})`, {
               className: this.options.context,
               methodName: method,
               args: [requestPayload],

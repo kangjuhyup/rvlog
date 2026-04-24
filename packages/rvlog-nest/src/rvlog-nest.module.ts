@@ -1,14 +1,16 @@
 import { DynamicModule, Global, Module } from '@nestjs/common';
 import { APP_INTERCEPTOR } from '@nestjs/core';
-import { Logger, type LoggerOptions } from 'rvlog';
+import { Logger, LoggerSystem, type LoggerOptions } from 'rvlog';
 import {
   RvlogHttpInterceptor,
+  RVLOG_HTTP_LOGGER_SYSTEM,
   RVLOG_HTTP_LOGGING_OPTIONS,
   type RvlogHttpLoggingOptions,
 } from './rvlog-http.interceptor';
 
 export interface RvlogNestModuleOptions {
   logger?: LoggerOptions;
+  loggerSystem?: LoggerSystem;
   http?: RvlogHttpLoggingOptions;
 }
 
@@ -16,7 +18,9 @@ export interface RvlogNestModuleOptions {
 @Module({})
 export class RvlogNestModule {
   static forRoot(options: RvlogNestModuleOptions = {}): DynamicModule {
-    if (options.logger) {
+    if (options.loggerSystem && options.logger) {
+      options.loggerSystem.configure(options.logger);
+    } else if (options.logger) {
       Logger.configure(options.logger);
     }
 
@@ -28,11 +32,15 @@ export class RvlogNestModule {
           useValue: options.http ?? {},
         },
         {
+          provide: RVLOG_HTTP_LOGGER_SYSTEM,
+          useValue: options.loggerSystem ?? null,
+        },
+        {
           provide: APP_INTERCEPTOR,
           useClass: RvlogHttpInterceptor,
         },
       ],
-      exports: [RVLOG_HTTP_LOGGING_OPTIONS],
+      exports: [RVLOG_HTTP_LOGGING_OPTIONS, RVLOG_HTTP_LOGGER_SYSTEM],
     };
   }
 }

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { LogLevel } from './log-level';
-import { Logger } from './logger';
+import { createLoggerSystem, Logger, LoggerSystem } from './logger';
 import { NotificationManager } from '../notification/notification-manager';
 import { FileTransport } from '../transports/file-transport';
 
@@ -309,5 +309,44 @@ describe('Logger', () => {
     // When / Then: 로그를 출력해도 예외가 호출자까지 전파되지 않는다.
     expect(() => new Logger('UserService').info('persisted')).not.toThrow();
     expect(failing.write).toHaveBeenCalledTimes(1);
+  });
+
+  it('creates isolated logger systems without mutating global Logger state - 팩토리 기반 시스템은 전역 Logger 상태를 건드리지 않는다', () => {
+    const infoSpy = vi.spyOn(console, 'info').mockImplementation(() => {});
+
+    Logger.configure({ minLevel: LogLevel.ERROR });
+
+    const system = new LoggerSystem({ minLevel: LogLevel.INFO });
+    const globalLogger = new Logger('GlobalService');
+    const scopedLogger = system.createLogger('ScopedService');
+
+    globalLogger.info('hidden');
+    scopedLogger.info('shown');
+
+    expect(infoSpy).toHaveBeenCalledTimes(1);
+    expect(infoSpy.mock.calls[0]?.[0]).toContain('ScopedService');
+    expect(infoSpy.mock.calls[0]?.[0]).toContain('shown');
+  });
+
+  it('exposes an isolated notification pipeline through createLoggerSystem - createLoggerSystem으로 독립 알림 구성을 만들 수 있다', async () => {
+    const notify = vi.fn(async () => {});
+    const manager = new NotificationManager();
+    manager.notify = notify;
+
+    const system = createLoggerSystem({ notification: manager });
+    const logger = system.createLogger('ScopedService');
+
+    logger.info('hello');
+    await Promise.resolve();
+
+    expect(notify).toHaveBeenCalledWith(
+      LogLevel.INFO,
+      'hello',
+      expect.objectContaining({
+        className: 'ScopedService',
+        methodName: 'log',
+      }),
+    );
+    expect(Logger.getNotificationManager()).toBeNull();
   });
 });
