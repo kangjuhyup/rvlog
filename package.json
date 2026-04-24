@@ -29,6 +29,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
+    "changeset": "changeset",
+    "changeset:version": "changeset version",
+    "release": "changeset publish",
     "pack:check": "npm pack --dry-run",
     "pack:check:all": "npm run pack:check && npm --prefix packages/rvlog-react run pack:check && npm --prefix packages/rvlog-nest run pack:check",
     "prepublishOnly": "npm run build",
@@ -68,6 +71,7 @@
     }
   },
   "devDependencies": {
+    "@changesets/cli": "^2.29.6",
     "@testing-library/react": "^16.3.2",
     "@types/node": "^22.0.0",
     "@types/react": "^18.3.28",
