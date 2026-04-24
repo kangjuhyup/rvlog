@@ -58,6 +58,7 @@ export { NotificationManager, type NotificationRule } from './notification/notif
 
 /** Shared notification channel contract and emitted log context shape. */
 export { type NotificationChannel, type LogContext } from './notification/notification-channel';
+export { type LogTags, type LogFields } from './notification/notification-channel';
 
 /** Circuit breaker used to protect noisy or failing notification channels. */
 export { CircuitBreaker, CircuitState, type CircuitBreakerOptions } from './notification/circuit-breaker';

@@ -20,6 +20,8 @@ export function buildSentryLogAttributes(context: LogContext): Record<string, un
     className: context.className,
     methodName: context.methodName,
     args: context.args,
+    tags: context.tags,
+    fields: context.fields,
     timestamp: context.timestamp.toISOString(),
     duration: context.duration,
     errorName: context.error?.name,

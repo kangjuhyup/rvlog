@@ -1,7 +1,7 @@
 import { LogLevel, LOG_LEVEL_PRIORITY } from './log-level';
 import { sanitizeLogValue, stringifyLogValue, type LogSerializeOptions } from './log-serializer';
 import { defaultTimestamp, resolveFormatter } from './logger.utils';
-import type { LogContext } from '../notification/notification-channel';
+import type { LogContext, LogFields, LogTags } from '../notification/notification-channel';
 import type { NotificationManager } from '../notification/notification-manager';
 
 /** A normalized log entry passed through formatters and transports. */
@@ -12,6 +12,8 @@ export interface LogRecord {
   message: string;
   args: unknown[];
   requestId?: string;
+  tags?: LogTags;
+  fields?: LogFields;
 }
 
 /** Formats a log record into a string for console or transport output. */
@@ -20,6 +22,8 @@ export type LogFormatter = (record: LogRecord) => string;
 /** Context values resolved at log time, such as request IDs. */
 export interface LoggerContextValue {
   requestId?: string;
+  tags?: LogTags;
+  fields?: LogFields;
 }
 
 export type LoggerContextResolver = () => LoggerContextValue | undefined;
@@ -52,6 +56,10 @@ export interface LoggerOptions {
   contextResolver?: LoggerContextResolver;
   /** Serialization limits used when sanitizing and stringifying arguments. */
   serialize?: LogSerializeOptions;
+  /** Default tags added to every emitted record from this runtime. */
+  defaultTags?: LogTags;
+  /** Default structured fields added to every emitted record from this runtime. */
+  defaultFields?: LogFields;
 }
 
 type LoggerConfiguration = LoggerOptions & { notification?: NotificationManager };
@@ -116,7 +124,14 @@ class LoggerRuntime {
     this.contextResolver = null;
   }
 
-  emit(context: string, level: LogLevel, message: string, args: unknown[]): void {
+  emit(
+    context: string,
+    level: LogLevel,
+    message: string,
+    args: unknown[],
+    boundTags: LogTags = {},
+    boundFields: LogFields = {},
+  ): void {
     const minLevel = this.options.minLevel ?? LogLevel.DEBUG;
 
     if (LOG_LEVEL_PRIORITY[level] < LOG_LEVEL_PRIORITY[minLevel]) {
@@ -126,6 +141,12 @@ class LoggerRuntime {
     const timestamp = (this.options.timestamp ?? defaultTimestamp)();
     const runtimeContext = this.contextResolver?.();
     const sanitizedArgs = args.map((arg) => this.sanitize(arg));
+    const tags = this.mergeTags(this.options.defaultTags, runtimeContext?.tags, boundTags);
+    const fields = this.mergeFields(
+      this.options.defaultFields,
+      runtimeContext?.fields ? this.sanitize(runtimeContext.fields) as LogFields : undefined,
+      Object.keys(boundFields).length > 0 ? this.sanitize(boundFields) as LogFields : undefined,
+    );
     const record: LogRecord = {
       timestamp,
       level,
@@ -133,6 +154,8 @@ class LoggerRuntime {
       message,
       args: sanitizedArgs,
       requestId: runtimeContext?.requestId,
+      tags,
+      fields,
     };
     const formatter = resolveFormatter(this.options);
     const formatted = formatter(record);
@@ -169,9 +192,21 @@ class LoggerRuntime {
         className: context,
         methodName: 'log',
         args: sanitizedArgs,
+        tags,
+        fields,
         timestamp: new Date(),
       });
     }
+  }
+
+  private mergeTags(...parts: Array<LogTags | undefined>): LogTags | undefined {
+    const merged = Object.assign({}, ...parts.filter(Boolean));
+    return Object.keys(merged).length > 0 ? merged : undefined;
+  }
+
+  private mergeFields(...parts: Array<LogFields | undefined>): LogFields | undefined {
+    const merged = Object.assign({}, ...parts.filter(Boolean));
+    return Object.keys(merged).length > 0 ? merged : undefined;
   }
 
   private forwardNotification(level: LogLevel, message: string, context: LogContext): void {
@@ -190,22 +225,41 @@ export class ScopedLogger {
   constructor(
     private readonly runtime: LoggerRuntime,
     private readonly context: string,
+    private readonly tags: LogTags = {},
+    private readonly fields: LogFields = {},
   ) {}
 
   debug(message: string, ...args: unknown[]): void {
-    this.runtime.emit(this.context, LogLevel.DEBUG, message, args);
+    this.runtime.emit(this.context, LogLevel.DEBUG, message, args, this.tags, this.fields);
   }
 
   info(message: string, ...args: unknown[]): void {
-    this.runtime.emit(this.context, LogLevel.INFO, message, args);
+    this.runtime.emit(this.context, LogLevel.INFO, message, args, this.tags, this.fields);
   }
 
   warn(message: string, ...args: unknown[]): void {
-    this.runtime.emit(this.context, LogLevel.WARN, message, args);
+    this.runtime.emit(this.context, LogLevel.WARN, message, args, this.tags, this.fields);
   }
 
   error(message: string, ...args: unknown[]): void {
-    this.runtime.emit(this.context, LogLevel.ERROR, message, args);
+    this.runtime.emit(this.context, LogLevel.ERROR, message, args, this.tags, this.fields);
+  }
+
+  withTags(tags: LogTags): ScopedLogger {
+    return new ScopedLogger(this.runtime, this.context, { ...this.tags, ...tags }, this.fields);
+  }
+
+  withFields(fields: LogFields): ScopedLogger {
+    return new ScopedLogger(this.runtime, this.context, this.tags, { ...this.fields, ...fields });
+  }
+
+  child(options: { context?: string; tags?: LogTags; fields?: LogFields } = {}): ScopedLogger {
+    return new ScopedLogger(
+      this.runtime,
+      options.context ?? this.context,
+      { ...this.tags, ...(options.tags ?? {}) },
+      { ...this.fields, ...(options.fields ?? {}) },
+    );
   }
 }
 

@@ -349,4 +349,33 @@ describe('Logger', () => {
     );
     expect(Logger.getNotificationManager()).toBeNull();
   });
+
+  it('supports tagged child loggers for structured metrics-style metadata - 태그/필드를 가진 child logger를 지원한다', async () => {
+    const notify = vi.fn(async () => {});
+    const manager = new NotificationManager();
+    manager.notify = notify;
+
+    Logger.configure({ notification: manager });
+
+    const logger = new Logger('MetricsService')
+      .withTags({ feature: 'signup', env: 'test' })
+      .withFields({ userCount: 3 });
+
+    logger.info('measured');
+    await Promise.resolve();
+
+    expect(notify).toHaveBeenCalledWith(
+      LogLevel.INFO,
+      'measured',
+      expect.objectContaining({
+        tags: expect.objectContaining({
+          feature: 'signup',
+          env: 'test',
+        }),
+        fields: expect.objectContaining({
+          userCount: 3,
+        }),
+      }),
+    );
+  });
 });
