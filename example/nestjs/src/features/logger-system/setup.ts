@@ -3,14 +3,17 @@ import {
   LogLevel,
   NotificationManager,
   SlackChannel,
-} from 'rvlog';
-import { FileTransport } from 'rvlog/node';
+} from "@kangjuhyup/rvlog";
+import { FileTransport } from "@kangjuhyup/rvlog/node";
 
 export const nestLoggerOptions = {
   minLevel: LogLevel.INFO,
   pretty: true,
   notification: new NotificationManager().addRule({
-    channel: new SlackChannel(process.env.SLACK_WEBHOOK_URL ?? 'https://hooks.slack.com/services/example'),
+    channel: new SlackChannel(
+      process.env.SLACK_WEBHOOK_URL ??
+        "https://hooks.slack.com/services/example",
+    ),
     levels: [LogLevel.ERROR],
     cooldownMs: 60_000,
     circuitBreaker: {
@@ -22,10 +25,10 @@ export const nestLoggerOptions = {
   transports: [
     new FileTransport({
       enabled: true,
-      dirPath: 'logs',
-      fileName: 'nestjs.log',
+      dirPath: "logs",
+      fileName: "nestjs.log",
       rotate: {
-        type: 'daily',
+        type: "daily",
       },
     }),
   ],

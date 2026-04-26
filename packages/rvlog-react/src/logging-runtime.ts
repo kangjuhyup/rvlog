@@ -1,10 +1,20 @@
-import { LogLevel, Logger, maskObject } from '@kangjuhyup/rvlog';
+import {
+  LogLevel,
+  Logger,
+  maskObject,
+  ScopedLogger,
+  LoggerSystem,
+  LogContext,
+} from "@kangjuhyup/rvlog";
 
 export function buildLogDuration(startTime: number): string {
   return `${(performance.now() - startTime).toFixed(2)}ms`;
 }
 
-export function buildCompletedLogMessage(name: string, startTime: number): string {
+export function buildCompletedLogMessage(
+  name: string,
+  startTime: number,
+): string {
   return `${name}() completed (${buildLogDuration(startTime)})`;
 }
 
@@ -13,7 +23,7 @@ export function buildFailedLogMessage(name: string, startTime: number): string {
 }
 
 export function maskLoggingValue<T>(value: T): T {
-  if (typeof value !== 'object' || value === null) {
+  if (typeof value !== "object" || value === null) {
     return value;
   }
 
@@ -23,7 +33,7 @@ export function maskLoggingValue<T>(value: T): T {
 export function stringifyLoggingValue(value: unknown): string {
   const maskedValue = maskLoggingValue(value);
 
-  if (typeof value === 'string') {
+  if (typeof value === "string") {
     return value;
   }
 
@@ -35,7 +45,7 @@ export function stringifyLoggingValue(value: unknown): string {
 }
 
 export function logAtLevel(
-  logger: LoggerLike,
+  logger: ScopedLogger,
   level: LogLevel,
   message: string,
   ...args: unknown[]
@@ -62,7 +72,9 @@ export function notifyLoggedError(
   args: unknown[],
   error: Error,
   duration: string,
-  notifier: Pick<typeof Logger, 'notify'> | Pick<LoggerSystem, 'notify'> = Logger,
+  notifier:
+    | Pick<typeof Logger, "notify">
+    | Pick<LoggerSystem, "notify"> = Logger,
 ): void {
   const payload: LogContext = {
     className: context,
@@ -73,5 +85,9 @@ export function notifyLoggedError(
     timestamp: new Date(),
   };
 
-  notifier.notify(LogLevel.ERROR, `${name}() failed (${duration}) ${error.name}: ${error.message}`, payload);
+  notifier.notify(
+    LogLevel.ERROR,
+    `${name}() failed (${duration}) ${error.name}: ${error.message}`,
+    payload,
+  );
 }
