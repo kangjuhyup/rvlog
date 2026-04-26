@@ -9,9 +9,9 @@
     "start": "node dist/server.js"
   },
   "dependencies": {
+    "@kangjuhyup/rvlog": "workspace:*",
     "express": "^5.1.0",
-    "reflect-metadata": "^0.2.2",
-    "rvlog": "workspace:*"
+    "reflect-metadata": "^0.2.2"
   },
   "devDependencies": {
     "@types/express": "^5.0.3",

@@ -1,6 +1,6 @@
 import './logger.config';
 import * as Sentry from '@sentry/browser';
-import { Logger } from 'rvlog';
+import { Logger } from '@kangjuhyup/rvlog';
 import { failSignup, signup, SignupInput } from './signup';
 
 const logger = new Logger('main');

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef } from 'react';
-import { LogLevel, Logger } from 'rvlog';
+import { LogLevel, Logger } from '@kangjuhyup/rvlog';
 import { useLogger } from './use-logger';
 
 export interface UseComponentLoggingResult {

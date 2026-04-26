@@ -1,5 +1,5 @@
 {
-  "name": "rvlog-react",
+  "name": "@kangjuhyup/rvlog-react",
   "version": "0.1.1",
   "description": "React helpers for rvlog",
   "main": "dist/index.js",
@@ -13,6 +13,9 @@
   "files": [
     "dist"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "test": "vitest run",
@@ -32,7 +35,7 @@
   },
   "peerDependencies": {
     "react": "^18.0.0 || ^19.0.0",
-    "rvlog": "^0.1.1"
+    "@kangjuhyup/rvlog": "^0.1.1"
   },
   "devDependencies": {
     "@testing-library/react": "^16.3.2",
@@ -41,7 +44,7 @@
     "jsdom": "^29.0.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "rvlog": "workspace:*",
+    "@kangjuhyup/rvlog": "workspace:*",
     "typescript": "^5.7.0",
     "vitest": "^3.2.4"
   }

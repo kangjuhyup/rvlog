@@ -1,4 +1,4 @@
-import { Logger, Logging, NoLog } from 'rvlog';
+import { Logger, Logging, NoLog } from '@kangjuhyup/rvlog';
 import { CreateUserDto } from './create-user.dto';
 
 @Logging

@@ -21,9 +21,9 @@
 `rvlog`는 TypeScript 기반 로깅 라이브러리 모노레포입니다.
 
 주요 패키지:
-- `rvlog`
-- `rvlog-react`
-- `rvlog-nest`
+- `@kangjuhyup/rvlog`
+- `@kangjuhyup/rvlog-react`
+- `@kangjuhyup/rvlog-nest`
 
 예제 앱:
 - `example/basic`

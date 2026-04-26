@@ -1,4 +1,4 @@
-import { LogLevel, Logger, maskObject } from 'rvlog';
+import { LogLevel, Logger, maskObject } from '@kangjuhyup/rvlog';
 
 export function buildLogDuration(startTime: number): string {
   return `${(performance.now() - startTime).toFixed(2)}ms`;

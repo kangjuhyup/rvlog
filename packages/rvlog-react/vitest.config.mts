@@ -3,14 +3,25 @@ import { resolve } from 'node:path';
 
 export default defineConfig({
   resolve: {
-    alias: {
-      rvlog: resolve(import.meta.dirname, '../../src/index.ts'),
-      'rvlog/node': resolve(import.meta.dirname, '../../src/node.ts'),
-    },
+    alias: [
+      {
+        find: /^@kangjuhyup\/rvlog$/,
+        replacement: resolve(import.meta.dirname, '../../dist/index.js'),
+      },
+      {
+        find: /^@kangjuhyup\/rvlog\/node$/,
+        replacement: resolve(import.meta.dirname, '../../dist/node.js'),
+      },
+    ],
   },
   test: {
     globals: true,
     environment: 'jsdom',
+    server: {
+      deps: {
+        inline: [/^@kangjuhyup\/rvlog$/, /^@kangjuhyup\/rvlog\/node$/],
+      },
+    },
     include: ['src/**/*.test.ts', 'src/**/*.test.tsx'],
     exclude: [
       '**/node_modules/**',

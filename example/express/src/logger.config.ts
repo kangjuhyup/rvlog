@@ -3,8 +3,8 @@ import {
   LogLevel,
   NotificationManager,
   SlackChannel,
-} from 'rvlog';
-import { FileTransport } from 'rvlog/node';
+} from '@kangjuhyup/rvlog';
+import { FileTransport } from '@kangjuhyup/rvlog/node';
 
 Logger.configure({
   minLevel: LogLevel.INFO,

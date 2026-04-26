@@ -4,15 +4,16 @@
 
 ## 릴리즈 대상 패키지
 
-- `rvlog`
-- `rvlog-react`
-- `rvlog-nest`
+- `@kangjuhyup/rvlog`
+- `@kangjuhyup/rvlog-react`
+- `@kangjuhyup/rvlog-nest`
 
 ## 최초 1회 설정
 
-1. npm automation token을 생성합니다.
-2. GitHub 저장소 secrets에 `NPM_TOKEN`으로 등록합니다.
-3. 기본 브랜치가 `main`인지 확인합니다.
+1. 기본 브랜치가 `main`인지 확인합니다.
+2. npm publish 방식 하나를 선택합니다.
+3. 토큰 방식을 쓰면 `bypass 2FA`가 켜진 granular token을 생성해 GitHub 저장소 secrets에 `NPM_TOKEN`으로 등록합니다.
+4. trusted publishing을 쓰면 npm 패키지 설정에서 각 패키지에 GitHub Actions trusted publisher를 연결합니다.
 
 ## 평소 작업 흐름
 
@@ -60,9 +61,9 @@ npm publish는 **Version PR이 머지된 뒤에** 실행됩니다.
 3. 이 시점에는 PR로 만들 unpublished changeset이 더 이상 없습니다.
 4. Changesets가 “PR 생성/갱신 모드”에서 “publish 모드”로 전환합니다.
 5. 워크플로우가 아래 패키지를 npm에 배포합니다.
-   - `rvlog`
-   - `rvlog-react`
-   - `rvlog-nest`
+   - `@kangjuhyup/rvlog`
+   - `@kangjuhyup/rvlog-react`
+   - `@kangjuhyup/rvlog-nest`
 
 ## 한눈에 보는 요약
 

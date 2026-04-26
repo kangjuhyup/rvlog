@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
-import { LogLevel, NotificationManager, SlackChannel } from 'rvlog';
-import { FileTransport } from 'rvlog/node';
-import { RvlogNestModule } from 'rvlog-nest';
+import { LogLevel, NotificationManager, SlackChannel } from '@kangjuhyup/rvlog';
+import { FileTransport } from '@kangjuhyup/rvlog/node';
+import { RvlogNestModule } from '@kangjuhyup/rvlog-nest';
 import { UserModule } from './user.module';
 
 @Module({

@@ -16,18 +16,18 @@
 ## Install
 
 ```bash
-npm install rvlog rvlog-nest reflect-metadata
-pnpm add rvlog rvlog-nest reflect-metadata
-yarn add rvlog rvlog-nest reflect-metadata
+npm install @kangjuhyup/rvlog @kangjuhyup/rvlog-nest reflect-metadata
+pnpm add @kangjuhyup/rvlog @kangjuhyup/rvlog-nest reflect-metadata
+yarn add @kangjuhyup/rvlog @kangjuhyup/rvlog-nest reflect-metadata
 ```
 
 ## Usage
 
 ```ts
 import { Module } from '@nestjs/common';
-import { LogLevel, NotificationManager, SlackChannel } from 'rvlog';
-import { FileTransport } from 'rvlog/node';
-import { RvlogNestModule } from 'rvlog-nest';
+import { LogLevel, NotificationManager, SlackChannel } from '@kangjuhyup/rvlog';
+import { FileTransport } from '@kangjuhyup/rvlog/node';
+import { RvlogNestModule } from '@kangjuhyup/rvlog-nest';
 
 @Module({
   imports: [

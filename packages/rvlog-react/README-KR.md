@@ -19,7 +19,7 @@
 가장 기본적인 훅입니다. 컴포넌트나 훅 컨텍스트 이름에 해당하는 `Logger` 인스턴스를 반환합니다.
 
 ```tsx
-import { useLogger } from 'rvlog-react';
+import { useLogger } from '@kangjuhyup/rvlog-react';
 
 function MyComponent() {
   const logger = useLogger('MyComponent');
@@ -32,7 +32,7 @@ function MyComponent() {
 커스텀 훅의 생명주기, 액션 실행, 상태 변화를 한 경계에서 함께 기록하고 싶을 때 사용합니다.
 
 ```ts
-import { useHookLogging } from 'rvlog-react';
+import { useHookLogging } from '@kangjuhyup/rvlog-react';
 
 export function useSignup() {
   const { run, traceState } = useHookLogging('useSignup');
@@ -82,7 +82,7 @@ useEffect(() => {
 `<Logging>` 컴포넌트는 mount/unmount, re-render를 자동으로 기록하고, React context를 통해 하위 컴포넌트 어디서든 `trackEvent`에 접근할 수 있게 해줍니다.
 
 ```tsx
-import { Logging, useLoggingContext } from 'rvlog-react';
+import { Logging, useLoggingContext } from '@kangjuhyup/rvlog-react';
 
 function SaveButton() {
   const { trackEvent } = useLoggingContext();
@@ -103,7 +103,7 @@ function App() {
 `<Logging>` 없이 훅만 직접 사용할 수도 있습니다.
 
 ```tsx
-import { useComponentLogging } from 'rvlog-react';
+import { useComponentLogging } from '@kangjuhyup/rvlog-react';
 
 function App() {
   const { trackEvent, renderCount } = useComponentLogging('App');
@@ -120,7 +120,7 @@ function App() {
 
 ```ts
 import * as Sentry from '@sentry/browser';
-import { Logger, LogLevel, NotificationManager, SentryChannel } from 'rvlog';
+import { Logger, LogLevel, NotificationManager, SentryChannel } from '@kangjuhyup/rvlog';
 
 Sentry.init({ dsn: import.meta.env.VITE_SENTRY_DSN });
 
@@ -158,7 +158,7 @@ Sentry Logs UI로 구조화 로그를 보내고 싶다면 최신 `@sentry/browse
 
 ```ts
 import * as Sentry from '@sentry/browser';
-import { Logger, LogLevel, NotificationManager, SentryChannel } from 'rvlog';
+import { Logger, LogLevel, NotificationManager, SentryChannel } from '@kangjuhyup/rvlog';
 
 Sentry.init({
   dsn: import.meta.env.VITE_SENTRY_DSN,
@@ -194,7 +194,7 @@ Logger.configure({
 
 ```ts
 import * as Sentry from '@sentry/browser';
-import { Logger, LogLevel, NotificationManager, SentryChannel } from 'rvlog';
+import { Logger, LogLevel, NotificationManager, SentryChannel } from '@kangjuhyup/rvlog';
 
 Sentry.init({
   dsn: import.meta.env.VITE_SENTRY_DSN,
@@ -221,7 +221,7 @@ const notification = new NotificationManager().addRule({
 ### Slack
 
 ```ts
-import { Logger, LogLevel, NotificationManager, SlackChannel } from 'rvlog';
+import { Logger, LogLevel, NotificationManager, SlackChannel } from '@kangjuhyup/rvlog';
 
 const notification = new NotificationManager().addRule({
   channel: new SlackChannel({ webhookUrl: import.meta.env.VITE_SLACK_WEBHOOK }),
@@ -235,7 +235,7 @@ Logger.configure({ notification });
 ### Discord
 
 ```ts
-import { Logger, LogLevel, NotificationManager, DiscordChannel } from 'rvlog';
+import { Logger, LogLevel, NotificationManager, DiscordChannel } from '@kangjuhyup/rvlog';
 
 const notification = new NotificationManager().addRule({
   channel: new DiscordChannel({ webhookUrl: import.meta.env.VITE_DISCORD_WEBHOOK }),
@@ -249,7 +249,7 @@ Logger.configure({ notification });
 ### Webhook
 
 ```ts
-import { Logger, LogLevel, NotificationManager, WebhookChannel } from 'rvlog';
+import { Logger, LogLevel, NotificationManager, WebhookChannel } from '@kangjuhyup/rvlog';
 
 const notification = new NotificationManager().addRule({
   channel: new WebhookChannel({ url: 'https://log-collector.example.com/ingest' }),

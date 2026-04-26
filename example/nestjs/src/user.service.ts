@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Logger, Logging } from 'rvlog';
+import { Logger, Logging } from '@kangjuhyup/rvlog';
 import { CreateUserDto } from './create-user.dto';
 
 @Logging

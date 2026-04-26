@@ -1,5 +1,5 @@
-import { Logger, LogLevel } from 'rvlog';
-import { FileTransport } from 'rvlog/node';
+import { Logger, LogLevel } from '@kangjuhyup/rvlog';
+import { FileTransport } from '@kangjuhyup/rvlog/node';
 
 Logger.configure({
   minLevel: LogLevel.INFO,

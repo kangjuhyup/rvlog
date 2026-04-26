@@ -1,6 +1,6 @@
 import { DynamicModule, Global, Module } from '@nestjs/common';
 import { APP_INTERCEPTOR } from '@nestjs/core';
-import { Logger, type LoggerOptions } from 'rvlog';
+import { Logger, type LoggerOptions, type NotificationManager } from '@kangjuhyup/rvlog';
 import {
   RvlogHttpInterceptor,
   RVLOG_HTTP_LOGGING_OPTIONS,
@@ -8,7 +8,7 @@ import {
 } from './rvlog-http.interceptor';
 
 export interface RvlogNestModuleOptions {
-  logger?: LoggerOptions;
+  logger?: LoggerOptions & { notification?: NotificationManager };
   http?: RvlogHttpLoggingOptions;
 }
 

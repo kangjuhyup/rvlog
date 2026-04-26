@@ -42,15 +42,38 @@ const sharedCoverageInclude = [
 
 export default defineConfig({
   resolve: {
-    alias: {
-      rvlog: resolve(import.meta.dirname, 'src/index.ts'),
-      'rvlog/node': resolve(import.meta.dirname, 'src/node.ts'),
-      'rvlog-nest': resolve(import.meta.dirname, 'packages/rvlog-nest/src/index.ts'),
-    },
+    alias: [
+      {
+        find: /^@kangjuhyup\/rvlog$/,
+        replacement: resolve(import.meta.dirname, 'dist/index.js'),
+      },
+      {
+        find: /^@kangjuhyup\/rvlog\/node$/,
+        replacement: resolve(import.meta.dirname, 'dist/node.js'),
+      },
+      {
+        find: /^@kangjuhyup\/rvlog-nest$/,
+        replacement: resolve(import.meta.dirname, 'packages/rvlog-nest/src/index.ts'),
+      },
+      {
+        find: /^@kangjuhyup\/rvlog-react$/,
+        replacement: resolve(import.meta.dirname, 'packages/rvlog-react/src/index.ts'),
+      },
+    ],
   },
   test: {
     globals: true,
     reporters: ['verbose'],
+    server: {
+      deps: {
+        inline: [
+          /^@kangjuhyup\/rvlog$/,
+          /^@kangjuhyup\/rvlog\/node$/,
+          /^@kangjuhyup\/rvlog-react$/,
+          /^@kangjuhyup\/rvlog-nest$/,
+        ],
+      },
+    },
     coverage: {
       provider: 'v8',
       all: true,

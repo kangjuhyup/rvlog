@@ -4,7 +4,7 @@ import {
   LogLevel,
   NotificationManager,
   SentryChannel,
-} from 'rvlog';
+} from '@kangjuhyup/rvlog';
 
 const dsn = import.meta.env.VITE_SENTRY_DSN as string | undefined;
 const BROWSER_KEY_STORAGE_KEY = 'rvlog.browserKey';

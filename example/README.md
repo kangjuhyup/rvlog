@@ -10,14 +10,14 @@
 - `express/` — `server → router → controller → service → dto` 흐름 + Slack 알림 + 파일 rotate
 - `nestjs/` — `main → module → controller → service → dto` 흐름 + daily rotate
 
-> Node 예제에서는 파일 저장을 위해 `rvlog/node`의 `FileTransport`를 `transports` 옵션으로 주입합니다.
+> Node 예제에서는 파일 저장을 위해 `@kangjuhyup/rvlog/node`의 `FileTransport`를 `transports` 옵션으로 주입합니다.
 
 ### Browser (프론트엔드)
 
 - `react/` — Vite + React + TS. **`useLogger` 훅**과 **`withLogging` HOF**로 도메인 함수를 감싸서 `@Logging` 데코레이터와 동일한 자동 로깅(진입/완료/에러/duration)을 훅 기반 코드에서도 얻는 패턴 + `SentryChannel` split mode (`ERROR -> Issue/Event`, `INFO/WARN -> Logs`) 연동.
 - `vanilla/` — Vite + 순수 TypeScript. **`withLogging` HOF**로 감싼 함수형 도메인 로직 + `@MaskLog` 자동 마스킹 + `SentryChannel` split mode (`ERROR -> Issue/Event`, `INFO/WARN -> Logs`) 연동. 클래스 서비스 없이도 데코레이터와 동등한 자동 로깅을 얻는 최소 예제.
 
-> 브라우저 예제는 `rvlog/node` 를 임포트하지 않습니다 (`FileTransport` 제외).
+> 브라우저 예제는 `@kangjuhyup/rvlog/node`를 임포트하지 않습니다 (`FileTransport` 제외).
 
 각 예제는 독립적인 `package.json`과 `src/` 구조를 가집니다.
 

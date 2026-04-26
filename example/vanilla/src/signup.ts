@@ -1,4 +1,4 @@
-import { MaskLog, withLogging } from 'rvlog';
+import { MaskLog, withLogging } from '@kangjuhyup/rvlog';
 
 export class SignupInput {
   @MaskLog({ type: 'email' })

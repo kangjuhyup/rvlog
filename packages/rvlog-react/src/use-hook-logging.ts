@@ -1,5 +1,5 @@
 import { useCallback, useEffect } from 'react';
-import { LogLevel, Logger } from 'rvlog';
+import { LogLevel, Logger } from '@kangjuhyup/rvlog';
 import {
   buildCompletedLogMessage,
   buildFailedLogMessage,

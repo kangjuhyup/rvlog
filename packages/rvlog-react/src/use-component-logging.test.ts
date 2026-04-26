@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { act, renderHook } from '@testing-library/react';
-import { Logger, LogLevel } from 'rvlog';
+import { Logger, LogLevel } from '@kangjuhyup/rvlog';
 import { useComponentLogging } from './use-component-logging';
 
 function spyContaining(spy: ReturnType<typeof vi.spyOn>, text: string): boolean {
