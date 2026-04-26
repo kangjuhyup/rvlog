@@ -84,7 +84,22 @@ async create(@Body() dto: CreateUserDto) {
 
 이 경우 `CreateUserDto`가 런타임에 실제 클래스로 남아 있어야 합니다.
 
-### 3. `@MaskLog`를 DTO 필드에 붙였는지 확인
+### 3. raw JSON 문자열 파싱은 `rvlog-nest`에서만 처리
+
+core 패키지인 `@kangjuhyup/rvlog`는 객체를 마스킹합니다. 임의의 문자열을 자동으로 JSON 파싱하지는 않습니다.
+
+```ts
+maskObject('{"email":"abc@abc.com"}'); // 문자열 그대로 유지
+```
+
+반면 `@kangjuhyup/rvlog-nest`는 HTTP request body라는 컨텍스트를 알고 있으므로, raw JSON 문자열 또는 `Buffer` body를 먼저 파싱한 뒤 DTO 메타데이터가 있으면 `@MaskLog`를 적용합니다. 파싱에 실패하면 원본 body를 유지하고 로깅은 계속 진행합니다.
+
+즉 raw body 마스킹은 adapter 쪽 책임입니다.
+
+- `rvlog`: 객체와 DTO 인스턴스를 마스킹하지만 문자열을 파싱하지 않음
+- `rvlog-nest`: raw JSON request body를 파싱한 뒤 가능한 경우 `@MaskLog` 메타데이터 적용
+
+### 4. `@MaskLog`를 DTO 필드에 붙였는지 확인
 
 메서드 파라미터 자체가 아니라, 실제 마스킹할 필드에 붙어 있어야 합니다.
 
@@ -98,12 +113,13 @@ export class CreateUserDto {
 }
 ```
 
-### 4. 로그를 남기는 경로가 rvlog를 통하는지 확인
+### 5. 로그를 남기는 경로가 rvlog를 통하는지 확인
 
 다음 경로에서는 `@MaskLog`가 적용됩니다.
 
 - `@Logging`
 - `withLogging()`
+- `rvlog-nest` HTTP request/response logging
 - `maskObject()`를 내부적으로 사용하는 rvlog 자동 로깅 경로
 
 반대로 직접 `console.log(dto)` 하거나, rvlog 밖에서 객체를 직렬화하면 마스킹되지 않습니다.

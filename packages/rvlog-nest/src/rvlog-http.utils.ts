@@ -141,6 +141,38 @@ export function assignPrototype<T extends object>(value: T, prototype?: object |
   return Object.assign(Object.create(prototype), value) as T;
 }
 
+export function parseJsonBody(value: unknown): unknown {
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+
+    if (!trimmed || !['{', '['].includes(trimmed[0] ?? '')) {
+      return value;
+    }
+
+    try {
+      return JSON.parse(trimmed) as unknown;
+    } catch {
+      return value;
+    }
+  }
+
+  if (typeof Buffer !== 'undefined' && Buffer.isBuffer(value)) {
+    return parseJsonBody(value.toString('utf8'));
+  }
+
+  return value;
+}
+
+export function maskRequestBody(body: unknown, metadataPrototype?: object | null): unknown {
+  const parsedBody = parseJsonBody(body);
+
+  if (typeof parsedBody === 'object' && parsedBody !== null) {
+    return maskObject(assignPrototype(parsedBody, metadataPrototype), undefined, metadataPrototype);
+  }
+
+  return parsedBody;
+}
+
 export function buildRequestPayload(
   context: ExecutionContext,
   request: HttpLikeRequest,
@@ -159,10 +191,7 @@ export function buildRequestPayload(
 
   if (options.logBody && request.body !== undefined) {
     const bodyMetadataPrototype = findBodyMetadataPrototype(context, parameterTypes);
-    payload.body =
-      typeof request.body === 'object' && request.body !== null
-        ? maskObject(assignPrototype(request.body, bodyMetadataPrototype), undefined, bodyMetadataPrototype)
-        : request.body;
+    payload.body = maskRequestBody(request.body, bodyMetadataPrototype);
   }
 
   if (options.logHeaders) {

@@ -13,7 +13,9 @@ import {
   getBodyParameterIndex,
   getHandlerParameterTypes,
   isPrimitiveWrapperPrototype,
+  maskRequestBody,
   normalizeHeaders,
+  parseJsonBody,
   resolveHttpLoggingOptions,
   resolveRequestId,
   shouldExcludePath,
@@ -110,5 +112,21 @@ describe('rvlog http utils', () => {
     expect(assignPrototype({ email: 'a' }, CreateUserDto.prototype)).toBeInstanceOf(CreateUserDto);
     expect(shouldExcludePath('/users/1', ['/users'])).toBe(true);
     expect(buildDuration(0)).toMatch(/ms$/);
+  });
+
+  it('parses raw JSON bodies before applying MaskLog metadata - raw JSON body도 MaskLog 메타데이터로 마스킹한다', () => {
+    expect(parseJsonBody('plain-text')).toBe('plain-text');
+    expect(parseJsonBody('{"email":"user@example.com"}')).toEqual({ email: 'user@example.com' });
+    expect(maskRequestBody('{"email":"user@example.com"}', CreateUserDto.prototype)).toEqual(
+      expect.objectContaining({ email: 'us***@example.com' }),
+    );
+  });
+
+  it('keeps malformed JSON bodies as-is when JSON.parse fails - JSON.parse 실패 시 원본 body를 유지한다', () => {
+    const malformedBody = '{"email":"user@example.com"';
+
+    expect(() => parseJsonBody(malformedBody)).not.toThrow();
+    expect(parseJsonBody(malformedBody)).toBe(malformedBody);
+    expect(maskRequestBody(malformedBody, CreateUserDto.prototype)).toBe(malformedBody);
   });
 });

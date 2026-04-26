@@ -130,6 +130,46 @@ describe('RvlogHttpInterceptor', () => {
     expect(infoSpy.mock.calls[1]?.[0]).toContain('[req-123] HTTP :: POST /users completed 201');
   });
 
+  it('masks raw JSON string request bodies using DTO metadata - JSON 파싱 전 raw body도 DTO 메타데이터로 마스킹한다', async () => {
+    const infoSpy = vi.spyOn(console, 'info').mockImplementation(() => {});
+    Logger.configure({ pretty: true });
+
+    const interceptor = new RvlogHttpInterceptor({
+      context: 'HTTP',
+      logBody: true,
+      requestIdHeader: 'x-request-id',
+    });
+    const context = createHttpContext('{"name":"강주협","email":"abc@abc.com"}');
+
+    await lastValueFrom(interceptor.intercept(context as never, { handle: () => of({ ok: true }) }));
+
+    const requestLog = infoSpy.mock.calls[0]?.[0] as string;
+    expect(requestLog).toContain('강*협');
+    expect(requestLog).toContain('ab***@abc.com');
+    expect(requestLog).not.toContain('강주협');
+    expect(requestLog).not.toContain('abc@abc.com');
+  });
+
+  it('keeps logging when raw JSON body parsing fails - raw JSON 파싱 실패 시에도 로깅을 유지한다', async () => {
+    const infoSpy = vi.spyOn(console, 'info').mockImplementation(() => {});
+    Logger.configure({ pretty: true });
+
+    const interceptor = new RvlogHttpInterceptor({
+      context: 'HTTP',
+      logBody: true,
+      requestIdHeader: 'x-request-id',
+    });
+    const malformedBody = '{"name":"강주협","email":"abc@abc.com"';
+    const context = createHttpContext(malformedBody);
+
+    await lastValueFrom(interceptor.intercept(context as never, { handle: () => of({ ok: true }) }));
+
+    const requestLog = infoSpy.mock.calls[0]?.[0] as string;
+    expect(requestLog).toContain('[req-123] HTTP :: POST /users called');
+    expect(requestLog).toContain('\\"name\\":\\"강주협\\"');
+    expect(requestLog).toContain('\\"email\\":\\"abc@abc.com\\"');
+  });
+
   it('keeps the same requestId on error logs and notifies through rvlog - 에러 로그도 같은 requestId로 남기고 notify를 호출한다', async () => {
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     const notifySpy = vi.spyOn(Logger, 'notify').mockImplementation(() => {});

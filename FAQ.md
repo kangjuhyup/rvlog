@@ -89,7 +89,22 @@ async create(@Body() dto: CreateUserDto) {
 }
 ```
 
-### 3. Check that `@MaskLog` is placed on fields
+### 3. Raw JSON strings are only parsed by `rvlog-nest`
+
+The core `@kangjuhyup/rvlog` package masks objects. It does not automatically parse arbitrary strings as JSON:
+
+```ts
+maskObject('{"email":"abc@abc.com"}'); // stays a string
+```
+
+`@kangjuhyup/rvlog-nest` has HTTP body context, so it can safely try to parse raw JSON string or `Buffer` request bodies before applying DTO metadata. If parsing fails, the original body is kept and logging continues.
+
+This means raw body masking is adapter-specific:
+
+- `rvlog`: masks objects and DTO instances, but does not parse strings
+- `rvlog-nest`: parses raw JSON request bodies, then applies `@MaskLog` metadata when available
+
+### 4. Check that `@MaskLog` is placed on fields
 
 The decorator should be applied to the actual DTO fields you want to mask:
 
@@ -103,7 +118,7 @@ export class CreateUserDto {
 }
 ```
 
-### 4. Check that the log path goes through `rvlog`
+### 5. Check that the log path goes through `rvlog`
 
 Masking applies on these paths:
 
