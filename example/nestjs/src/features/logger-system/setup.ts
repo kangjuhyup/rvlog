@@ -1,14 +1,22 @@
 import {
   createLoggerSystem,
+  defineLoggerOptions,
   LogLevel,
   NotificationManager,
   SlackChannel,
 } from "@kangjuhyup/rvlog";
 import { FileTransport } from "@kangjuhyup/rvlog/node";
 
-export const nestLoggerOptions = {
+export const nestLoggerOptions = defineLoggerOptions({
   minLevel: LogLevel.INFO,
-  pretty: true,
+  pretty: {
+    separator: "Nest",
+    levelColors: {
+      [LogLevel.INFO]: "cyan",
+      [LogLevel.WARN]: "yellow",
+      [LogLevel.ERROR]: "brightRed",
+    },
+  },
   notification: new NotificationManager().addRule({
     channel: new SlackChannel(
       process.env.SLACK_WEBHOOK_URL ??
@@ -32,6 +40,6 @@ export const nestLoggerOptions = {
       },
     }),
   ],
-};
+});
 
 export const nestLoggerSystem = createLoggerSystem(nestLoggerOptions);

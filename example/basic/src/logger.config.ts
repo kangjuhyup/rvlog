@@ -1,9 +1,16 @@
-import { Logger, LogLevel } from '@kangjuhyup/rvlog';
-import { FileTransport } from '@kangjuhyup/rvlog/node';
+import { createLoggerSystem, defineLoggerOptions, Logger, LogLevel } from "@kangjuhyup/rvlog";
+import { FileTransport } from "@kangjuhyup/rvlog/node";
 
-const loggerOptions = {
+const loggerOptions = defineLoggerOptions({
   minLevel: LogLevel.INFO,
-  pretty: true,
+  pretty: {
+    separator: '=>',
+    levelColors: {
+      [LogLevel.INFO]: 'cyan',
+      [LogLevel.WARN]: 'yellow',
+      [LogLevel.ERROR]: 'brightRed',
+    },
+  },
   transports: [
     new FileTransport({
       enabled: true,
@@ -16,7 +23,7 @@ const loggerOptions = {
       },
     }),
   ],
-};
+});
 
 export const appLoggerSystem = createLoggerSystem(loggerOptions);
 
