@@ -122,6 +122,12 @@ describe('rvlog http utils', () => {
     );
   });
 
+  it('masks raw JSON array bodies with DTO metadata - raw JSON 배열 body도 DTO 메타데이터로 마스킹한다', () => {
+    expect(maskRequestBody('[{"email":"user@example.com"}]', CreateUserDto.prototype)).toEqual([
+      expect.objectContaining({ email: 'us***@example.com' }),
+    ]);
+  });
+
   it('keeps malformed JSON bodies as-is when JSON.parse fails - JSON.parse 실패 시 원본 body를 유지한다', () => {
     const malformedBody = '{"email":"user@example.com"';
 

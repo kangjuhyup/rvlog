@@ -167,7 +167,7 @@ export function maskRequestBody(body: unknown, metadataPrototype?: object | null
   const parsedBody = parseJsonBody(body);
 
   if (typeof parsedBody === 'object' && parsedBody !== null) {
-    return maskObject(assignPrototype(parsedBody, metadataPrototype), undefined, metadataPrototype);
+    return maskObject(parsedBody, undefined, metadataPrototype);
   }
 
   return parsedBody;

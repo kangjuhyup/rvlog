@@ -103,7 +103,7 @@ export function maskObject<T>(
     visited.set(input, clonedArray);
 
     input.forEach((item, index) => {
-      clonedArray[index] = maskObject(item, visited);
+      clonedArray[index] = maskObject(item, visited, metadataPrototype);
     });
 
     return clonedArray as T;

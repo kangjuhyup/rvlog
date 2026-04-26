@@ -150,6 +150,26 @@ describe('RvlogHttpInterceptor', () => {
     expect(requestLog).not.toContain('abc@abc.com');
   });
 
+  it('masks raw JSON array request bodies using DTO metadata - raw JSON 배열 body도 DTO 메타데이터로 마스킹한다', async () => {
+    const infoSpy = vi.spyOn(console, 'info').mockImplementation(() => {});
+    Logger.configure({ pretty: true });
+
+    const interceptor = new RvlogHttpInterceptor({
+      context: 'HTTP',
+      logBody: true,
+      requestIdHeader: 'x-request-id',
+    });
+    const context = createHttpContext('[{"name":"강주협","email":"abc@abc.com"}]');
+
+    await lastValueFrom(interceptor.intercept(context as never, { handle: () => of({ ok: true }) }));
+
+    const requestLog = infoSpy.mock.calls[0]?.[0] as string;
+    expect(requestLog).toContain('강*협');
+    expect(requestLog).toContain('ab***@abc.com');
+    expect(requestLog).not.toContain('강주협');
+    expect(requestLog).not.toContain('abc@abc.com');
+  });
+
   it('keeps logging when raw JSON body parsing fails - raw JSON 파싱 실패 시에도 로깅을 유지한다', async () => {
     const infoSpy = vi.spyOn(console, 'info').mockImplementation(() => {});
     Logger.configure({ pretty: true });
