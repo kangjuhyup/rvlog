@@ -3,6 +3,7 @@ import { sanitizeLogValue, stringifyLogValue, type LogSerializeOptions } from '.
 import { defaultTimestamp, resolveFormatter } from './logger.utils';
 import type { LogContext, LogFields, LogTags } from '../notification/notification-channel';
 import type { NotificationManager } from '../notification/notification-manager';
+import type { PrettyLogFormatterOptions } from '../formatters/pretty-formatter';
 
 /** A normalized log entry passed through formatters and transports. */
 export interface LogRecord {
@@ -46,8 +47,8 @@ export interface LoggerOptions {
   minLevel?: LogLevel;
   /** Custom timestamp generator used for each log record. */
   timestamp?: () => string;
-  /** Enables the built-in pretty formatter when no custom formatter is provided. */
-  pretty?: boolean;
+  /** Enables or customizes the built-in pretty formatter when no custom formatter is provided. */
+  pretty?: boolean | PrettyLogFormatterOptions;
   /** Custom formatter that overrides the built-in default/pretty formatters. */
   formatter?: LogFormatter;
   /** Optional transports that receive each emitted record. */
@@ -62,7 +63,7 @@ export interface LoggerOptions {
   defaultFields?: LogFields;
 }
 
-type LoggerConfiguration = LoggerOptions & { notification?: NotificationManager };
+export type LoggerConfiguration = LoggerOptions & { notification?: NotificationManager };
 
 class LoggerRuntime {
   private notificationManager: NotificationManager | null = null;
@@ -370,4 +371,9 @@ export class Logger extends ScopedLogger {
 /** Creates an isolated logger system with its own configuration scope. */
 export function createLoggerSystem(options?: LoggerConfiguration): LoggerSystem {
   return new LoggerSystem(options);
+}
+
+/** Gives reusable logger option objects contextual typing without changing them at runtime. */
+export function defineLoggerOptions<T extends LoggerConfiguration>(options: T): T {
+  return options;
 }

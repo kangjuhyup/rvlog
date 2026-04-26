@@ -5,6 +5,8 @@ export {
   LoggerSystem,
   ScopedLogger,
   createLoggerSystem,
+  defineLoggerOptions,
+  type LoggerConfiguration,
   type LoggerOptions,
   type LoggerContextResolver,
   type LoggerContextValue,

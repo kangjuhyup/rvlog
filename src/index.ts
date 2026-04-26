@@ -11,6 +11,8 @@ export {
   LoggerSystem,
   ScopedLogger,
   createLoggerSystem,
+  defineLoggerOptions,
+  type LoggerConfiguration,
   type LoggerOptions,
   type LoggerContextResolver,
   type LoggerContextValue,
@@ -36,7 +38,12 @@ export {
 export { defaultLogFormatter } from './formatters/default-formatter';
 
 /** Pretty formatter for human-friendly console output. */
-export { prettyLogFormatter } from './formatters/pretty-formatter';
+export {
+  createPrettyLogFormatter,
+  prettyLogFormatter,
+  type PrettyLogColor,
+  type PrettyLogFormatterOptions,
+} from './formatters/pretty-formatter';
 
 /** Class decorator that adds automatic method entry/exit/error logging. */
 export { Logging } from './decorators/logging.decorator';

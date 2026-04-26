@@ -88,6 +88,34 @@ class UserService {
 }
 ```
 
+## Pretty Output
+
+Use `pretty: true` for the built-in compact console format, or pass an object when you only want to adjust a few parts without writing a full custom formatter.
+
+```ts
+import { defineLoggerOptions, Logger, LogLevel } from '@kangjuhyup/rvlog';
+
+const loggerOptions = defineLoggerOptions({
+  pretty: {
+    separator: '->',
+    showTimestamp: false,
+    levelLabels: {
+      [LogLevel.INFO]: 'info',
+      [LogLevel.ERROR]: 'error',
+    },
+    levelColors: {
+      [LogLevel.INFO]: 'cyan',
+      [LogLevel.WARN]: 'yellow',
+      [LogLevel.ERROR]: 'brightRed',
+    },
+  },
+});
+
+Logger.configure(loggerOptions);
+```
+
+For complete control over the output string, pass `formatter`.
+
 ## Function-First Usage
 
 Use `withLogging()` when you want the same automatic logging behavior without class decorators.

@@ -88,6 +88,34 @@ class UserService {
 }
 ```
 
+## Pretty 출력
+
+기본 보기 좋은 콘솔 포맷은 `pretty: true`로 켤 수 있습니다. 일부 요소만 바꾸고 싶다면 전체 `formatter`를 직접 만들지 않고 `pretty`에 객체 옵션을 넘길 수 있습니다.
+
+```ts
+import { defineLoggerOptions, Logger, LogLevel } from "@kangjuhyup/rvlog";
+
+const loggerOptions = defineLoggerOptions({
+  pretty: {
+    separator: "->",
+    showTimestamp: false,
+    levelLabels: {
+      [LogLevel.INFO]: "info",
+      [LogLevel.ERROR]: "error",
+    },
+    levelColors: {
+      [LogLevel.INFO]: "cyan",
+      [LogLevel.WARN]: "yellow",
+      [LogLevel.ERROR]: "brightRed",
+    },
+  },
+});
+
+Logger.configure(loggerOptions);
+```
+
+출력 문자열 전체를 직접 제어해야 한다면 `formatter`를 사용하세요.
+
 ## 함수형 사용법
 
 클래스 데코레이터 대신 함수 단위로 동일한 자동 로깅을 적용하고 싶다면 `withLogging()`을 사용하면 됩니다.

@@ -1,5 +1,5 @@
 import { defaultLogFormatter } from '../formatters/default-formatter';
-import { prettyLogFormatter } from '../formatters/pretty-formatter';
+import { createPrettyLogFormatter, prettyLogFormatter } from '../formatters/pretty-formatter';
 import type { LogFormatter, LoggerOptions } from './logger';
 
 export function defaultTimestamp(): string {
@@ -18,6 +18,10 @@ export function resolveFormatter(options: LoggerOptions): LogFormatter {
   }
 
   if (options.pretty) {
+    if (typeof options.pretty === 'object') {
+      return createPrettyLogFormatter(options.pretty);
+    }
+
     return prettyLogFormatter;
   }
 

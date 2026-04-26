@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { LogLevel } from './log-level';
-import { createLoggerSystem, Logger, LoggerSystem } from './logger';
+import { createLoggerSystem, defineLoggerOptions, Logger, LoggerSystem } from './logger';
 import { NotificationManager } from '../notification/notification-manager';
 import { FileTransport } from '../transports/file-transport';
 
@@ -44,6 +44,60 @@ describe('Logger', () => {
     expect(output).toContain('[INF]');
     expect(output).toContain('UserService');
     expect(output).toContain('formatted');
+  });
+
+  it('customizes the pretty formatter with pretty options - pretty 객체 옵션으로 출력 형태를 조정한다', () => {
+    const infoSpy = vi.spyOn(console, 'info').mockImplementation(() => {});
+
+    Logger.configure({
+      pretty: {
+        separator: '->',
+        showTimestamp: false,
+        levelLabels: {
+          [LogLevel.INFO]: 'info',
+        },
+      },
+    });
+
+    new Logger('UserService').info('formatted');
+
+    expect(infoSpy).toHaveBeenCalledWith('info UserService -> formatted');
+  });
+
+  it('defines reusable logger options with contextual typing - 재사용 설정 객체에 라이브러리 타입을 제공한다', () => {
+    const options = defineLoggerOptions({
+      minLevel: LogLevel.INFO,
+      pretty: {
+        levelColors: {
+          [LogLevel.ERROR]: 'brightRed',
+        },
+      },
+    });
+
+    expect(options.pretty).toEqual(
+      expect.objectContaining({
+        levelColors: {
+          [LogLevel.ERROR]: 'brightRed',
+        },
+      }),
+    );
+  });
+
+  it('supports custom pretty colors per level - pretty 레벨별 색상을 설정한다', () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    Logger.configure({
+      pretty: {
+        showTimestamp: false,
+        levelColors: {
+          [LogLevel.ERROR]: 'brightRed',
+        },
+      },
+    });
+
+    new Logger('UserService').error('failed');
+
+    expect(errorSpy).toHaveBeenCalledWith('\u001B[91m[ERR]\u001B[0m UserService :: failed');
   });
 
   it('prefers a custom formatter over pretty mode - custom formatter가 있으면 pretty보다 우선한다', () => {
