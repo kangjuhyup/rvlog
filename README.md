@@ -19,9 +19,9 @@ Minimum requirements for the core package:
 - `TypeScript 5.7+`
 
 ```bash
-npm install rvlog reflect-metadata
-pnpm add rvlog reflect-metadata
-yarn add rvlog reflect-metadata
+npm install @kangjuhyup/rvlog reflect-metadata
+pnpm add @kangjuhyup/rvlog reflect-metadata
+yarn add @kangjuhyup/rvlog reflect-metadata
 ```
 
 Optional integrations:
@@ -35,9 +35,9 @@ yarn add @sentry/browser
 Related packages:
 
 ```bash
-npm install rvlog-react rvlog-nest
-pnpm add rvlog-react rvlog-nest
-yarn add rvlog-react rvlog-nest
+npm install @kangjuhyup/rvlog-react @kangjuhyup/rvlog-nest
+pnpm add @kangjuhyup/rvlog-react @kangjuhyup/rvlog-nest
+yarn add @kangjuhyup/rvlog-react @kangjuhyup/rvlog-nest
 ```
 
 Notes:
@@ -51,7 +51,7 @@ Import `reflect-metadata` once at app startup before using decorators.
 
 ```ts
 import 'reflect-metadata';
-import { Logger, Logging, LogLevel, MaskLog, NoLog } from 'rvlog';
+import { Logger, Logging, LogLevel, MaskLog, NoLog } from '@kangjuhyup/rvlog';
 
 Logger.configure({
   minLevel: LogLevel.INFO,
@@ -93,7 +93,7 @@ class UserService {
 Use `withLogging()` when you want the same automatic logging behavior without class decorators.
 
 ```ts
-import { MaskLog, withLogging } from 'rvlog';
+import { MaskLog, withLogging } from '@kangjuhyup/rvlog';
 
 class SignupInput {
   @MaskLog({ type: 'email' })
@@ -114,12 +114,12 @@ export const signup = withLogging(signupImpl, {
 
 ## Node.js File Logging
 
-Use `rvlog/node` only in Node runtimes.
+Use `@kangjuhyup/rvlog/node` only in Node runtimes.
 
 ```ts
 import 'reflect-metadata';
-import { Logger, LogLevel } from 'rvlog';
-import { FileTransport } from 'rvlog/node';
+import { Logger, LogLevel } from '@kangjuhyup/rvlog';
+import { FileTransport } from '@kangjuhyup/rvlog/node';
 
 Logger.configure({
   minLevel: LogLevel.INFO,

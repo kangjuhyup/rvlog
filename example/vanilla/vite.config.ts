@@ -3,8 +3,11 @@ import { fileURLToPath, URL } from 'node:url';
 
 export default defineConfig({
   resolve: {
-    alias: {
-      rvlog: fileURLToPath(new URL('../../src/index.ts', import.meta.url)),
-    },
+    alias: [
+      {
+        find: /^@kangjuhyup\/rvlog$/,
+        replacement: fileURLToPath(new URL('../../src/index.ts', import.meta.url)),
+      },
+    ],
   },
 });

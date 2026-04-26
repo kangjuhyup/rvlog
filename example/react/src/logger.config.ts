@@ -6,7 +6,7 @@ import {
   LogLevel,
   NotificationManager,
   SentryChannel,
-} from 'rvlog';
+} from '@kangjuhyup/rvlog';
 
 // 1) Sentry 초기화는 앱 진입점에서 한 번만.
 //    실제 운영에서는 DSN을 환경 변수로 주입하세요 (Vite: import.meta.env.VITE_SENTRY_DSN).

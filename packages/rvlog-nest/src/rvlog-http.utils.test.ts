@@ -2,7 +2,7 @@ import 'reflect-metadata';
 import { describe, expect, it, vi } from 'vitest';
 import { ROUTE_ARGS_METADATA } from '@nestjs/common/constants';
 import { RouteParamtypes } from '@nestjs/common/enums/route-paramtypes.enum';
-import { MaskLog } from 'rvlog';
+import { MaskLog } from '@kangjuhyup/rvlog';
 import {
   assignPrototype,
   buildDuration,

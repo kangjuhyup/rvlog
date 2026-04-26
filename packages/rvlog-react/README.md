@@ -19,7 +19,7 @@
 The most basic hook. It returns a `Logger` instance for the given component or hook context.
 
 ```tsx
-import { useLogger } from 'rvlog-react';
+import { useLogger } from '@kangjuhyup/rvlog-react';
 
 function MyComponent() {
   const logger = useLogger('MyComponent');
@@ -32,7 +32,7 @@ function MyComponent() {
 Use this when you want to log hook lifecycle, actions, and state transitions from one boundary.
 
 ```ts
-import { useHookLogging } from 'rvlog-react';
+import { useHookLogging } from '@kangjuhyup/rvlog-react';
 
 export function useSignup() {
   const { run, traceState } = useHookLogging('useSignup');
@@ -82,7 +82,7 @@ If you pass objects, `rvlog` applies its shared serialization rules. DTO instanc
 `<Logging>` automatically logs mount/unmount and re-renders, then exposes `trackEvent` through React context so child components can use it without prop drilling.
 
 ```tsx
-import { Logging, useLoggingContext } from 'rvlog-react';
+import { Logging, useLoggingContext } from '@kangjuhyup/rvlog-react';
 
 function SaveButton() {
   const { trackEvent } = useLoggingContext();
@@ -103,7 +103,7 @@ function App() {
 You can also use the hook directly without `<Logging>`.
 
 ```tsx
-import { useComponentLogging } from 'rvlog-react';
+import { useComponentLogging } from '@kangjuhyup/rvlog-react';
 
 function App() {
   const { trackEvent, renderCount } = useComponentLogging('App');
@@ -120,7 +120,7 @@ Logs produced by `rvlog-react` hooks and components follow the same integration 
 
 ```ts
 import * as Sentry from '@sentry/browser';
-import { Logger, LogLevel, NotificationManager, SentryChannel } from 'rvlog';
+import { Logger, LogLevel, NotificationManager, SentryChannel } from '@kangjuhyup/rvlog';
 
 Sentry.init({ dsn: import.meta.env.VITE_SENTRY_DSN });
 
@@ -158,7 +158,7 @@ If you want structured logs in the Sentry Logs UI, use a recent `@sentry/browser
 
 ```ts
 import * as Sentry from '@sentry/browser';
-import { Logger, LogLevel, NotificationManager, SentryChannel } from 'rvlog';
+import { Logger, LogLevel, NotificationManager, SentryChannel } from '@kangjuhyup/rvlog';
 
 Sentry.init({
   dsn: import.meta.env.VITE_SENTRY_DSN,
@@ -194,7 +194,7 @@ In practice, a common setup is to route:
 
 ```ts
 import * as Sentry from '@sentry/browser';
-import { Logger, LogLevel, NotificationManager, SentryChannel } from 'rvlog';
+import { Logger, LogLevel, NotificationManager, SentryChannel } from '@kangjuhyup/rvlog';
 
 Sentry.init({
   dsn: import.meta.env.VITE_SENTRY_DSN,
@@ -221,7 +221,7 @@ Notes:
 ### Slack
 
 ```ts
-import { Logger, LogLevel, NotificationManager, SlackChannel } from 'rvlog';
+import { Logger, LogLevel, NotificationManager, SlackChannel } from '@kangjuhyup/rvlog';
 
 const notification = new NotificationManager().addRule({
   channel: new SlackChannel({ webhookUrl: import.meta.env.VITE_SLACK_WEBHOOK }),
@@ -235,7 +235,7 @@ Logger.configure({ notification });
 ### Discord
 
 ```ts
-import { Logger, LogLevel, NotificationManager, DiscordChannel } from 'rvlog';
+import { Logger, LogLevel, NotificationManager, DiscordChannel } from '@kangjuhyup/rvlog';
 
 const notification = new NotificationManager().addRule({
   channel: new DiscordChannel({ webhookUrl: import.meta.env.VITE_DISCORD_WEBHOOK }),
@@ -249,7 +249,7 @@ Logger.configure({ notification });
 ### Webhook
 
 ```ts
-import { Logger, LogLevel, NotificationManager, WebhookChannel } from 'rvlog';
+import { Logger, LogLevel, NotificationManager, WebhookChannel } from '@kangjuhyup/rvlog';
 
 const notification = new NotificationManager().addRule({
   channel: new WebhookChannel({ url: 'https://log-collector.example.com/ingest' }),

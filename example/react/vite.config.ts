@@ -7,9 +7,15 @@ import { fileURLToPath, URL } from 'node:url';
 export default defineConfig({
   plugins: [react()],
   resolve: {
-    alias: {
-      rvlog: fileURLToPath(new URL('../../src/index.ts', import.meta.url)),
-      'rvlog-react': fileURLToPath(new URL('../../packages/rvlog-react/src/index.ts', import.meta.url)),
-    },
+    alias: [
+      {
+        find: /^@kangjuhyup\/rvlog$/,
+        replacement: fileURLToPath(new URL('../../src/index.ts', import.meta.url)),
+      },
+      {
+        find: /^@kangjuhyup\/rvlog-react$/,
+        replacement: fileURLToPath(new URL('../../packages/rvlog-react/src/index.ts', import.meta.url)),
+      },
+    ],
   },
 });

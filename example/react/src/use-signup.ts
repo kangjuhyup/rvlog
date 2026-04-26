@@ -1,13 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useHookLogging } from "rvlog-react";
-import { LogLevel, MaskLog } from "rvlog";
-import {
-  logReactInfoExample,
-  logReactWarnExample,
-  logSignupSuccessMetrics,
-} from "./features/structured-metadata";
-import { attachSignupUserToSentry } from "./features/sentry-context";
-import { reactLoggerSystem } from "./features/logger-system";
+import * as Sentry from "@sentry/browser";
+import { useHookLogging } from "@kangjuhyup/rvlog-react";
+import { LogLevel, MaskLog } from "@kangjuhyup/rvlog";
 
 export class SignupInput {
   @MaskLog({ type: "email" })

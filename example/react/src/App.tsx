@@ -1,4 +1,4 @@
-import { Logging, useLoggingContext } from "rvlog-react";
+import { Logging, useLoggingContext } from "@kangjuhyup/rvlog-react";
 import { useSignup } from "./use-signup";
 
 function AppContent() {

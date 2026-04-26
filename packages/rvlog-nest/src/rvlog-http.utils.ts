@@ -2,7 +2,7 @@ import { ROUTE_ARGS_METADATA } from '@nestjs/common/constants';
 import { RouteParamtypes } from '@nestjs/common/enums/route-paramtypes.enum';
 import type { ExecutionContext } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
-import { maskObject } from 'rvlog';
+import { maskObject } from '@kangjuhyup/rvlog';
 import type { RvlogHttpLoggingOptions } from './rvlog-http.interceptor';
 
 type HttpLikeRequest = {

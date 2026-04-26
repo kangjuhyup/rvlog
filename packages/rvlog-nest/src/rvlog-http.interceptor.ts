@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { Observable } from 'rxjs';
-import { LogLevel, Logger, LoggerSystem, type LoggerContextValue } from 'rvlog';
+import { LogLevel, Logger, type LoggerContextValue } from '@kangjuhyup/rvlog';
 import {
   buildDuration,
   buildRequestPayload,

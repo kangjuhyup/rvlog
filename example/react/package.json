@@ -12,11 +12,11 @@
   },
   "dependencies": {
     "@sentry/browser": "^10.10.0",
+    "@kangjuhyup/rvlog": "workspace:*",
+    "@kangjuhyup/rvlog-react": "workspace:*",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "reflect-metadata": "^0.2.2",
-    "rvlog": "workspace:*",
-    "rvlog-react": "workspace:*"
+    "reflect-metadata": "^0.2.2"
   },
   "devDependencies": {
     "@types/react": "^18.3.12",

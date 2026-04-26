@@ -1,6 +1,6 @@
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { describe, expect, it, vi, afterEach } from 'vitest';
-import { Logger, LogLevel } from 'rvlog';
+import { Logger, LogLevel } from '@kangjuhyup/rvlog';
 import {
   RVLOG_HTTP_LOGGER_SYSTEM,
   RVLOG_HTTP_LOGGING_OPTIONS,

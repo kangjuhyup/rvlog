@@ -4,7 +4,7 @@ import { RouteParamtypes } from '@nestjs/common/enums/route-paramtypes.enum';
 import { describe, expect, it, vi, afterEach } from 'vitest';
 import { of, throwError } from 'rxjs';
 import { lastValueFrom } from 'rxjs';
-import { MaskLog, Logger, LogLevel } from 'rvlog';
+import { MaskLog, Logger, LogLevel } from '@kangjuhyup/rvlog';
 import { RvlogHttpInterceptor } from './rvlog-http.interceptor';
 
 class CreateUserDto {

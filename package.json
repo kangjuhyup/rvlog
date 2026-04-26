@@ -1,6 +1,6 @@
 {
-  "name": "rvlog",
-  "version": "0.1.0",
+  "name": "@kangjuhyup/rvlog",
+  "version": "0.1.1",
   "description": "Framework-agnostic TypeScript logging library with decorators, field masking, and error notifications",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -24,11 +24,14 @@
   "files": [
     "dist"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsc --project tsconfig.build.json",
-    "test": "vitest run",
+    "test": "npm run build && vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage",
+    "test:coverage": "npm run build && vitest run --coverage",
     "changeset": "changeset",
     "changeset:version": "changeset version",
     "release": "changeset publish",

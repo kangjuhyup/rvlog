@@ -19,9 +19,9 @@
 - `TypeScript 5.7+`
 
 ```bash
-npm install rvlog reflect-metadata
-pnpm add rvlog reflect-metadata
-yarn add rvlog reflect-metadata
+npm install @kangjuhyup/rvlog reflect-metadata
+pnpm add @kangjuhyup/rvlog reflect-metadata
+yarn add @kangjuhyup/rvlog reflect-metadata
 ```
 
 선택 의존성:
@@ -35,9 +35,9 @@ yarn add @sentry/browser
 관련 패키지:
 
 ```bash
-npm install rvlog-react rvlog-nest
-pnpm add rvlog-react rvlog-nest
-yarn add rvlog-react rvlog-nest
+npm install @kangjuhyup/rvlog-react @kangjuhyup/rvlog-nest
+pnpm add @kangjuhyup/rvlog-react @kangjuhyup/rvlog-nest
+yarn add @kangjuhyup/rvlog-react @kangjuhyup/rvlog-nest
 ```
 
 참고:
@@ -51,7 +51,7 @@ yarn add rvlog-react rvlog-nest
 
 ```ts
 import "reflect-metadata";
-import { Logger, Logging, LogLevel, MaskLog, NoLog } from "rvlog";
+import { Logger, Logging, LogLevel, MaskLog, NoLog } from "@kangjuhyup/rvlog";
 
 Logger.configure({
   minLevel: LogLevel.INFO,
@@ -93,7 +93,7 @@ class UserService {
 클래스 데코레이터 대신 함수 단위로 동일한 자동 로깅을 적용하고 싶다면 `withLogging()`을 사용하면 됩니다.
 
 ```ts
-import { MaskLog, withLogging } from "rvlog";
+import { MaskLog, withLogging } from "@kangjuhyup/rvlog";
 
 class SignupInput {
   @MaskLog({ type: "email" })
@@ -114,12 +114,12 @@ export const signup = withLogging(signupImpl, {
 
 ## Node.js 파일 로그
 
-파일 저장 기능은 Node 런타임에서만 `rvlog/node`를 import 하세요.
+파일 저장 기능은 Node 런타임에서만 `@kangjuhyup/rvlog/node`를 import 하세요.
 
 ```ts
 import "reflect-metadata";
-import { Logger, LogLevel } from "rvlog";
-import { FileTransport } from "rvlog/node";
+import { Logger, LogLevel } from "@kangjuhyup/rvlog";
+import { FileTransport } from "@kangjuhyup/rvlog/node";
 
 Logger.configure({
   minLevel: LogLevel.INFO,

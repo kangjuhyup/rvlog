@@ -1,11 +1,6 @@
 import './logger.config';
-import { Logger } from 'rvlog';
-import {
-  logVanillaContextCheck,
-  logVanillaErrorExampleExecuted,
-  logVanillaSignupSuccess,
-} from './features/structured-metadata';
-import { attachVanillaUserToSentry } from './features/sentry-context';
+import * as Sentry from '@sentry/browser';
+import { Logger } from '@kangjuhyup/rvlog';
 import { failSignup, signup, SignupInput } from './signup';
 
 const logger = new Logger('main');

@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@sentry/browser": "^10.10.0",
-    "rvlog": "workspace:*"
+    "@kangjuhyup/rvlog": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.7.0",

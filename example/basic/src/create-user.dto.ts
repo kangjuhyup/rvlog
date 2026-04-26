@@ -1,4 +1,4 @@
-import { MaskLog } from 'rvlog';
+import { MaskLog } from '@kangjuhyup/rvlog';
 
 export class CreateUserDto {
   @MaskLog({ type: 'name' })

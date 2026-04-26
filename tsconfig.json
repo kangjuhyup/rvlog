@@ -3,6 +3,13 @@
     "target": "ES2020",
     "module": "commonjs",
     "lib": ["ES2020"],
+    "baseUrl": ".",
+    "paths": {
+      "@kangjuhyup/rvlog": ["./src/index.ts"],
+      "@kangjuhyup/rvlog/node": ["./src/node.ts"],
+      "@kangjuhyup/rvlog-nest": ["./packages/rvlog-nest/src/index.ts"],
+      "@kangjuhyup/rvlog-react": ["./packages/rvlog-react/src/index.ts"]
+    },
     "noEmit": true,
     "strict": true,
     "esModuleInterop": true,

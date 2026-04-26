@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { renderHook } from '@testing-library/react';
-import { Logger } from 'rvlog';
+import { Logger } from '@kangjuhyup/rvlog';
 import { useLogger } from './use-logger';
 
 describe('useLogger', () => {

@@ -5,8 +5,8 @@
     "lib": ["ES2020"],
     "baseUrl": ".",
     "paths": {
-      "rvlog": ["../../src/index.ts"],
-      "rvlog/node": ["../../src/node.ts"]
+      "@kangjuhyup/rvlog": ["../../dist/index.d.ts"],
+      "@kangjuhyup/rvlog/node": ["../../dist/node.d.ts"]
     },
     "declaration": true,
     "declarationMap": true,
@@ -20,5 +20,6 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true
   },
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": ["dist", "src/**/*.test.ts"]
 }

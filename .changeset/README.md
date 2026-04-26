@@ -2,9 +2,9 @@
 
 Use Changesets to manage versioning and npm releases for:
 
-- `rvlog`
-- `rvlog-react`
-- `rvlog-nest`
+- `@kangjuhyup/rvlog`
+- `@kangjuhyup/rvlog-react`
+- `@kangjuhyup/rvlog-nest`
 
 Typical workflow:
 
