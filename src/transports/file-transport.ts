@@ -23,18 +23,22 @@ export interface LogFileOptions {
 }
 
 export class FileTransport implements LogTransport {
+  private writeQueue: Promise<void> = Promise.resolve();
+
   constructor(private readonly options: LogFileOptions) {}
 
   async write(record: LogRecord, formatted: string): Promise<void> {
-    const dirPath = this.options.dirPath ?? 'logs';
-    const targetPath = this.resolveFilePath(record);
-    await mkdir(dirPath, { recursive: true });
+    return this.enqueueWrite(async () => {
+      const dirPath = this.options.dirPath ?? 'logs';
+      const targetPath = this.resolveFilePath(record);
+      await mkdir(dirPath, { recursive: true });
 
-    if (this.options.rotate?.type === 'size') {
-      await this.rotateBySize(targetPath, `${formatted}\n`);
-    }
+      if (this.options.rotate?.type === 'size') {
+        await this.rotateBySize(targetPath, `${formatted}\n`);
+      }
 
-    await appendFile(targetPath, `${formatted}\n`, 'utf8');
+      await appendFile(targetPath, `${formatted}\n`, 'utf8');
+    });
   }
 
   resolveFilePath(record: LogRecord): string {
@@ -81,5 +85,13 @@ export class FileTransport implements LogTransport {
     }
 
     await rename(filePath, `${filePath}.1`).catch(() => {});
+  }
+
+  private enqueueWrite(task: () => Promise<void>): Promise<void> {
+    const nextWrite = this.writeQueue.then(task);
+
+    this.writeQueue = nextWrite.catch(() => {});
+
+    return nextWrite;
   }
 }

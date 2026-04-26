@@ -1,5 +1,6 @@
 import { Logger, Logging, NoLog } from '@kangjuhyup/rvlog';
 import { CreateUserDto } from './create-user.dto';
+import { logExpressUserCreated } from './features/structured-metadata';
 
 @Logging
 export class UserService {
@@ -11,7 +12,10 @@ export class UserService {
 
   async create(dto: CreateUserDto) {
     this.logger.info('create request received');
-    return { id: 1, ...dto };
+    const createdUser = { id: 1, ...dto };
+
+    logExpressUserCreated(createdUser);
+    return createdUser;
   }
 
   @NoLog

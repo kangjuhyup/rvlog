@@ -88,6 +88,34 @@ class UserService {
 }
 ```
 
+## Pretty Output
+
+Use `pretty: true` for the built-in compact console format, or pass an object when you only want to adjust a few parts without writing a full custom formatter.
+
+```ts
+import { defineLoggerOptions, Logger, LogLevel } from '@kangjuhyup/rvlog';
+
+const loggerOptions = defineLoggerOptions({
+  pretty: {
+    separator: '->',
+    showTimestamp: false,
+    levelLabels: {
+      [LogLevel.INFO]: 'info',
+      [LogLevel.ERROR]: 'error',
+    },
+    levelColors: {
+      [LogLevel.INFO]: 'cyan',
+      [LogLevel.WARN]: 'yellow',
+      [LogLevel.ERROR]: 'brightRed',
+    },
+  },
+});
+
+Logger.configure(loggerOptions);
+```
+
+For complete control over the output string, pass `formatter`.
+
 ## Function-First Usage
 
 Use `withLogging()` when you want the same automatic logging behavior without class decorators.
@@ -204,3 +232,42 @@ Troubleshooting:
 Performance results are documented here:
 
 - [benchmark/REPORT.md](./benchmark/REPORT.md)
+# Isolated Logger Systems
+
+`Logger.configure(...)` is still the default global setup for simple apps.
+
+When you need isolated logger state per app, test, tenant, or integration boundary,
+use `createLoggerSystem(...)` instead.
+
+```ts
+import {
+  createLoggerSystem,
+  LogLevel,
+  Logger,
+  withLogging,
+} from 'rvlog';
+
+const system = createLoggerSystem({
+  minLevel: LogLevel.INFO,
+});
+
+const logger = system.createLogger('UserService');
+logger.info('hello from isolated runtime');
+
+const wrapped = withLogging(
+  async (userId: string) => userId,
+  {
+    context: 'user-flow',
+    system,
+  },
+);
+```
+
+Use the global `Logger` when:
+- one process-wide configuration is enough
+- you want the simplest setup
+
+Use `LoggerSystem` when:
+- tests must not mutate global logger state
+- multiple apps or tenants share the same runtime
+- framework adapters should use isolated transports or notification channels

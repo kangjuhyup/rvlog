@@ -106,3 +106,32 @@ RvlogNestModule.forRoot({
   },
 })
 ```
+# NestJS에서 LoggerSystem 사용하기
+
+`RvlogNestModule.forRoot(...)`는 기존처럼 전역 `Logger`를 설정할 수도 있지만,
+격리된 `LoggerSystem`을 주입해서 사용할 수도 있습니다.
+
+```ts
+import { createLoggerSystem, LogLevel } from 'rvlog';
+import { RvlogNestModule } from 'rvlog-nest';
+
+const system = createLoggerSystem({
+  minLevel: LogLevel.INFO,
+});
+
+@Module({
+  imports: [
+    RvlogNestModule.forRoot({
+      loggerSystem: system,
+      logger: { minLevel: LogLevel.INFO },
+      http: { context: 'HTTP' },
+    }),
+  ],
+})
+export class AppModule {}
+```
+
+`loggerSystem`을 넘기면:
+- Nest HTTP 로깅이 그 격리된 런타임을 사용하고
+- `stringify`, `notify`, context resolver도 그 시스템을 따르며
+- 전역 `Logger.configure(...)`에만 의존하지 않아도 됩니다

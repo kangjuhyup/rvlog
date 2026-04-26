@@ -7,7 +7,14 @@ import 'reflect-metadata';
  */
 export {
   Logger,
+  type LoggerLike,
+  LoggerSystem,
+  ScopedLogger,
+  createLoggerSystem,
+  defineLoggerOptions,
+  type LoggerConfiguration,
   type LoggerOptions,
+  type LoggerContextResolver,
   type LoggerContextValue,
   type LogRecord,
   type LogFormatter,
@@ -31,7 +38,12 @@ export {
 export { defaultLogFormatter } from './formatters/default-formatter';
 
 /** Pretty formatter for human-friendly console output. */
-export { prettyLogFormatter } from './formatters/pretty-formatter';
+export {
+  createPrettyLogFormatter,
+  prettyLogFormatter,
+  type PrettyLogColor,
+  type PrettyLogFormatterOptions,
+} from './formatters/pretty-formatter';
 
 /** Class decorator that adds automatic method entry/exit/error logging. */
 export { Logging } from './decorators/logging.decorator';
@@ -53,6 +65,7 @@ export { NotificationManager, type NotificationRule } from './notification/notif
 
 /** Shared notification channel contract and emitted log context shape. */
 export { type NotificationChannel, type LogContext } from './notification/notification-channel';
+export { type LogTags, type LogFields } from './notification/notification-channel';
 
 /** Circuit breaker used to protect noisy or failing notification channels. */
 export { CircuitBreaker, CircuitState, type CircuitBreakerOptions } from './notification/circuit-breaker';

@@ -212,11 +212,17 @@ export class SentryChannel implements NotificationChannel {
       scope.setTag('className', context.className);
       scope.setTag('methodName', context.methodName);
 
+      for (const [key, value] of Object.entries(context.tags ?? {})) {
+        scope.setTag(key, value);
+      }
+
       if (context.duration) {
         scope.setTag('duration', context.duration);
       }
 
       scope.setExtra('args', context.args);
+      scope.setExtra('fields', context.fields);
+      scope.setExtra('tags', context.tags);
       scope.setExtra('timestamp', context.timestamp.toISOString());
       scope.setExtra('message', message);
 

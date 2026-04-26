@@ -277,3 +277,30 @@ const notification = new NotificationManager()
 
 Logger.configure({ notification });
 ```
+# React에서 LoggerSystem 사용하기
+
+`rvlog-react`는 전역 `Logger`를 그대로 사용할 수 있지만,
+필요하면 격리된 `LoggerSystem`도 함께 사용할 수 있습니다.
+
+```ts
+import { createLoggerSystem, LogLevel } from 'rvlog';
+import { useHookLogging } from 'rvlog-react';
+
+const system = createLoggerSystem({
+  minLevel: LogLevel.INFO,
+});
+
+function useSignup() {
+  const { run, traceState } = useHookLogging('useSignup', { system });
+
+  return {
+    signup: run('signup', async (email: string) => email),
+    traceState,
+  };
+}
+```
+
+이 방식은 아래 같은 경우에 유용합니다.
+- React 테스트가 전역 Logger 설정에 영향받지 않아야 할 때
+- 특정 화면이나 기능만 별도 notification pipeline을 써야 할 때
+- 하나의 브라우저 런타임에서 여러 앱이 함께 동작할 때

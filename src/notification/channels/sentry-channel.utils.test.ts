@@ -11,6 +11,8 @@ const context: LogContext = {
   className: 'UserService',
   methodName: 'create',
   args: [{ id: 1 }],
+  tags: { feature: 'signup' },
+  fields: { userId: 7 },
   error: new Error('boom'),
   duration: '1.23ms',
   timestamp: new Date('2026-04-24T00:00:00.000Z'),
@@ -29,6 +31,8 @@ describe('sentry channel utils', () => {
       expect.objectContaining({
         className: 'UserService',
         methodName: 'create',
+        tags: { feature: 'signup' },
+        fields: { userId: 7 },
         errorName: 'Error',
         errorMessage: 'boom',
         timestamp: '2026-04-24T00:00:00.000Z',

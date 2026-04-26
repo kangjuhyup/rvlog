@@ -85,7 +85,15 @@ export default defineConfig({
       {
         test: {
           name: 'core',
-          include: ['src/**/*.test.ts', 'packages/rvlog-nest/**/*.test.ts'],
+          include: ['src/**/*.test.ts'],
+          exclude: sharedExclude,
+          environment: 'node',
+        },
+      },
+      {
+        test: {
+          name: 'nest',
+          include: ['packages/rvlog-nest/**/*.test.ts'],
           exclude: sharedExclude,
           environment: 'node',
         },

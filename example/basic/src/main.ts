@@ -1,5 +1,6 @@
 import './logger.config';
 import { CreateUserDto } from './create-user.dto';
+import { logBasicUserCreated } from './features/structured-metadata';
 import { UserService } from './user.service';
 
 async function bootstrap() {
@@ -9,7 +10,8 @@ async function bootstrap() {
   dto.email = 'hong@gmail.com';
   dto.phoneNumber = '01012345678';
 
-  await service.create(dto);
+  const createdUser = await service.create(dto);
+  logBasicUserCreated(createdUser);
   service.healthCheck();
 }
 

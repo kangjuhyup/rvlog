@@ -12,6 +12,15 @@ describe('logger utils', () => {
 
     expect(resolveFormatter({ formatter: custom })).toBe(custom);
     expect(resolveFormatter({ pretty: true })({ level: LogLevel.INFO, message: 'm', context: 'c', args: [], timestamp: 't' })).toContain('[INF]');
+    expect(
+      resolveFormatter({ pretty: { showTimestamp: false, separator: '->' } })({
+        level: LogLevel.INFO,
+        message: 'm',
+        context: 'c',
+        args: [],
+        timestamp: 't',
+      }),
+    ).toBe('[INF] c -> m');
     expect(resolveFormatter({})({ level: LogLevel.INFO, message: 'm', context: 'c', args: [], timestamp: 't' })).toBe('t [c] INFO m');
   });
 });

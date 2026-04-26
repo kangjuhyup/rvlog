@@ -1,0 +1,1 @@
+export { basicLoggerSystem } from './setup';

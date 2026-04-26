@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { LogLevel } from './log-level';
-import { Logger } from './logger';
+import { createLoggerSystem, defineLoggerOptions, Logger, LoggerSystem } from './logger';
 import { NotificationManager } from '../notification/notification-manager';
 import { FileTransport } from '../transports/file-transport';
 
@@ -44,6 +44,60 @@ describe('Logger', () => {
     expect(output).toContain('[INF]');
     expect(output).toContain('UserService');
     expect(output).toContain('formatted');
+  });
+
+  it('customizes the pretty formatter with pretty options - pretty 객체 옵션으로 출력 형태를 조정한다', () => {
+    const infoSpy = vi.spyOn(console, 'info').mockImplementation(() => {});
+
+    Logger.configure({
+      pretty: {
+        separator: '->',
+        showTimestamp: false,
+        levelLabels: {
+          [LogLevel.INFO]: 'info',
+        },
+      },
+    });
+
+    new Logger('UserService').info('formatted');
+
+    expect(infoSpy).toHaveBeenCalledWith('info UserService -> formatted');
+  });
+
+  it('defines reusable logger options with contextual typing - 재사용 설정 객체에 라이브러리 타입을 제공한다', () => {
+    const options = defineLoggerOptions({
+      minLevel: LogLevel.INFO,
+      pretty: {
+        levelColors: {
+          [LogLevel.ERROR]: 'brightRed',
+        },
+      },
+    });
+
+    expect(options.pretty).toEqual(
+      expect.objectContaining({
+        levelColors: {
+          [LogLevel.ERROR]: 'brightRed',
+        },
+      }),
+    );
+  });
+
+  it('supports custom pretty colors per level - pretty 레벨별 색상을 설정한다', () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    Logger.configure({
+      pretty: {
+        showTimestamp: false,
+        levelColors: {
+          [LogLevel.ERROR]: 'brightRed',
+        },
+      },
+    });
+
+    new Logger('UserService').error('failed');
+
+    expect(errorSpy).toHaveBeenCalledWith('\u001B[91m[ERR]\u001B[0m UserService :: failed');
   });
 
   it('prefers a custom formatter over pretty mode - custom formatter가 있으면 pretty보다 우선한다', () => {
@@ -309,5 +363,73 @@ describe('Logger', () => {
     // When / Then: 로그를 출력해도 예외가 호출자까지 전파되지 않는다.
     expect(() => new Logger('UserService').info('persisted')).not.toThrow();
     expect(failing.write).toHaveBeenCalledTimes(1);
+  });
+
+  it('creates isolated logger systems without mutating global Logger state - 팩토리 기반 시스템은 전역 Logger 상태를 건드리지 않는다', () => {
+    const infoSpy = vi.spyOn(console, 'info').mockImplementation(() => {});
+
+    Logger.configure({ minLevel: LogLevel.ERROR });
+
+    const system = new LoggerSystem({ minLevel: LogLevel.INFO });
+    const globalLogger = new Logger('GlobalService');
+    const scopedLogger = system.createLogger('ScopedService');
+
+    globalLogger.info('hidden');
+    scopedLogger.info('shown');
+
+    expect(infoSpy).toHaveBeenCalledTimes(1);
+    expect(infoSpy.mock.calls[0]?.[0]).toContain('ScopedService');
+    expect(infoSpy.mock.calls[0]?.[0]).toContain('shown');
+  });
+
+  it('exposes an isolated notification pipeline through createLoggerSystem - createLoggerSystem으로 독립 알림 구성을 만들 수 있다', async () => {
+    const notify = vi.fn(async () => {});
+    const manager = new NotificationManager();
+    manager.notify = notify;
+
+    const system = createLoggerSystem({ notification: manager });
+    const logger = system.createLogger('ScopedService');
+
+    logger.info('hello');
+    await Promise.resolve();
+
+    expect(notify).toHaveBeenCalledWith(
+      LogLevel.INFO,
+      'hello',
+      expect.objectContaining({
+        className: 'ScopedService',
+        methodName: 'log',
+      }),
+    );
+    expect(Logger.getNotificationManager()).toBeNull();
+  });
+
+  it('supports tagged child loggers for structured metrics-style metadata - 태그/필드를 가진 child logger를 지원한다', async () => {
+    const notify = vi.fn(async () => {});
+    const manager = new NotificationManager();
+    manager.notify = notify;
+
+    Logger.configure({ notification: manager });
+
+    const logger = new Logger('MetricsService')
+      .withTags({ feature: 'signup', env: 'test' })
+      .withFields({ userCount: 3 });
+
+    logger.info('measured');
+    await Promise.resolve();
+
+    expect(notify).toHaveBeenCalledWith(
+      LogLevel.INFO,
+      'measured',
+      expect.objectContaining({
+        tags: expect.objectContaining({
+          feature: 'signup',
+          env: 'test',
+        }),
+        fields: expect.objectContaining({
+          userCount: 3,
+        }),
+      }),
+    );
   });
 });

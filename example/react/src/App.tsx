@@ -18,6 +18,10 @@ function AppContent() {
         <code>useLogger()</code> 훅으로 컴포넌트/도메인별{" "}
         <code>Logger</code>를 주입하고, ERROR 로그는{" "}
         <code>SentryChannel</code>을 통해 Sentry로 전송됩니다.
+        <br />
+        이 예제는 <code>src/features/advanced-logging</code>에서{" "}
+        <code>LoggerSystem</code>, <code>withTags()</code>,{" "}
+        <code>withFields()</code> 사용 예시도 함께 보여줍니다.
       </p>
 
       <div style={{ display: "flex", gap: 8 }}>

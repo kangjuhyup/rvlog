@@ -277,3 +277,30 @@ const notification = new NotificationManager()
 
 Logger.configure({ notification });
 ```
+# Using LoggerSystem in React
+
+`rvlog-react` works with the global `Logger`, but it can also use an isolated
+`LoggerSystem`.
+
+```ts
+import { createLoggerSystem, LogLevel } from 'rvlog';
+import { useHookLogging } from 'rvlog-react';
+
+const system = createLoggerSystem({
+  minLevel: LogLevel.INFO,
+});
+
+function useSignup() {
+  const { run, traceState } = useHookLogging('useSignup', { system });
+
+  return {
+    signup: run('signup', async (email: string) => email),
+    traceState,
+  };
+}
+```
+
+This is useful when:
+- React tests must stay isolated from global logger configuration
+- one page or feature should use a dedicated notification pipeline
+- multiple embedded apps run in the same browser runtime

@@ -17,11 +17,9 @@ document.getElementById('info-btn')!.addEventListener('click', async () => {
     nickname: 'rvlog-user',
   });
   const result = await signup(input);
-  Sentry.setUser({
-    id: result.id,
-    email: input.email,
-    username: input.nickname,
-  });
+  attachVanillaUserToSentry(result.id, input.email, input.nickname);
+  logVanillaSignupSuccess(result, input.nickname);
+
   setStatus(`signup ok · id=${result.id.slice(0, 8)}…`);
 });
 
@@ -31,11 +29,21 @@ document.getElementById('warn-btn')!.addEventListener('click', () => {
 });
 
 document.getElementById('context-btn')!.addEventListener('click', () => {
-  logger.info('browser context check', {
-    browserKey: window.localStorage.getItem('rvlog.browserKey'),
-    hasUser: Boolean(Sentry.getCurrentScope().getUser()?.id),
+  logVanillaContextCheck(
+    window.localStorage.getItem('rvlog.browserKey'),
+    Boolean(window.localStorage.getItem('rvlog.browserKey')),
+  );
+
+  logger.info('advanced logger example', {
+    loggerSystem: 'appLoggerSystem',
+    tags: {
+      feature: 'signup',
+      surface: 'vanilla-example',
+      action: 'context-check',
+    },
   });
-  setStatus('context info logged -> Sentry Logs (DSN 설정 시 전송)');
+
+  setStatus('advanced tags/fields logged -> Sentry Logs (DSN 설정 시 전송)');
 });
 
 document.getElementById('error-btn')!.addEventListener('click', () => {
@@ -43,6 +51,8 @@ document.getElementById('error-btn')!.addEventListener('click', () => {
     failSignup();
   } catch {
     // withLogging이 내부에서 이미 error 로그 + Sentry Issue/Event 전송까지 처리했다.
+    logVanillaErrorExampleExecuted();
+
     setStatus('error logged -> Sentry Issue/Event (DSN 설정 시 전송)');
   }
 });

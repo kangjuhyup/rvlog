@@ -88,6 +88,34 @@ class UserService {
 }
 ```
 
+## Pretty 출력
+
+기본 보기 좋은 콘솔 포맷은 `pretty: true`로 켤 수 있습니다. 일부 요소만 바꾸고 싶다면 전체 `formatter`를 직접 만들지 않고 `pretty`에 객체 옵션을 넘길 수 있습니다.
+
+```ts
+import { defineLoggerOptions, Logger, LogLevel } from "@kangjuhyup/rvlog";
+
+const loggerOptions = defineLoggerOptions({
+  pretty: {
+    separator: "->",
+    showTimestamp: false,
+    levelLabels: {
+      [LogLevel.INFO]: "info",
+      [LogLevel.ERROR]: "error",
+    },
+    levelColors: {
+      [LogLevel.INFO]: "cyan",
+      [LogLevel.WARN]: "yellow",
+      [LogLevel.ERROR]: "brightRed",
+    },
+  },
+});
+
+Logger.configure(loggerOptions);
+```
+
+출력 문자열 전체를 직접 제어해야 한다면 `formatter`를 사용하세요.
+
 ## 함수형 사용법
 
 클래스 데코레이터 대신 함수 단위로 동일한 자동 로깅을 적용하고 싶다면 `withLogging()`을 사용하면 됩니다.
@@ -204,3 +232,42 @@ Logger.configure({
 성능 측정 결과는 아래 문서에 있습니다.
 
 - [benchmark/REPORT-KR.md](./benchmark/REPORT-KR.md)
+# 격리된 LoggerSystem 구성
+
+간단한 앱에서는 기존처럼 `Logger.configure(...)` 기반 전역 설정을 그대로 써도 됩니다.
+
+하지만 앱 단위, 테스트 단위, 테넌트 단위로 로거 상태를 분리하고 싶다면
+`createLoggerSystem(...)`을 사용하는 편이 더 안전합니다.
+
+```ts
+import {
+  createLoggerSystem,
+  LogLevel,
+  Logger,
+  withLogging,
+} from 'rvlog';
+
+const system = createLoggerSystem({
+  minLevel: LogLevel.INFO,
+});
+
+const logger = system.createLogger('UserService');
+logger.info('격리된 런타임에서 출력되는 로그');
+
+const wrapped = withLogging(
+  async (userId: string) => userId,
+  {
+    context: 'user-flow',
+    system,
+  },
+);
+```
+
+이럴 때는 전역 `Logger`가 적합합니다.
+- 프로세스 전체에서 설정이 하나면 충분할 때
+- 가장 단순한 사용 방식이 필요할 때
+
+이럴 때는 `LoggerSystem`이 더 적합합니다.
+- 테스트가 전역 Logger 상태를 오염시키면 안 될 때
+- 여러 앱 또는 여러 테넌트가 같은 런타임을 공유할 때
+- framework adapter마다 transport/notification 구성을 분리하고 싶을 때

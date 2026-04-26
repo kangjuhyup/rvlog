@@ -34,6 +34,18 @@ const baseRecord: LogRecord = {
   args: [],
 };
 
+function createDeferred() {
+  let resolve!: () => void;
+  let reject!: (reason?: unknown) => void;
+
+  const promise = new Promise<void>((res, rej) => {
+    resolve = res;
+    reject = rej;
+  });
+
+  return { promise, resolve, reject };
+}
+
 describe('FileTransport', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -182,5 +194,35 @@ describe('FileTransport', () => {
 
     // When / Then: 기본 파일 경로를 그대로 사용한다.
     expect(transport.resolveFilePath(baseRecord)).toBe(join('logs', 'app.log'));
+  });
+
+  it('serializes concurrent writes to avoid append/rotate overlap - 동시 write도 순차적으로 처리한다', async () => {
+    const firstAppend = createDeferred();
+    appendFileMock
+      .mockImplementationOnce(() => firstAppend.promise)
+      .mockResolvedValueOnce(undefined);
+
+    const transport = new FileTransport({
+      enabled: true,
+      dirPath: 'logs',
+      fileName: 'app.log',
+    });
+
+    const firstWrite = transport.write(baseRecord, 'first');
+    const secondWrite = transport.write(baseRecord, 'second');
+
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(appendFileMock).toHaveBeenCalledTimes(1);
+    expect(appendFileMock).toHaveBeenNthCalledWith(1, join('logs', 'app.log'), 'first\n', 'utf8');
+
+    firstAppend.resolve();
+
+    await firstWrite;
+    await secondWrite;
+
+    expect(appendFileMock).toHaveBeenCalledTimes(2);
+    expect(appendFileMock).toHaveBeenNthCalledWith(2, join('logs', 'app.log'), 'second\n', 'utf8');
   });
 });

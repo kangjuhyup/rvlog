@@ -1,0 +1,1 @@
+export { expressLoggerSystem } from './setup';

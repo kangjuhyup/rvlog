@@ -98,6 +98,26 @@ describe('maskObject - 객체 마스킹', () => {
     expect(masked.plain.value).toBe('visible');
   });
 
+  it('applies explicit metadata prototypes to array items - 명시적 메타데이터 prototype을 배열 원소에도 적용한다', () => {
+    const masked = maskObject(
+      [
+        {
+          name: '홍길동',
+          email: 'hong@gmail.com',
+        },
+      ],
+      undefined,
+      CreateUserDto.prototype,
+    );
+
+    expect(masked[0]).toEqual(
+      expect.objectContaining({
+        name: '홍*동',
+        email: 'ho***@gmail.com',
+      }),
+    );
+  });
+
   it('falls back to full mask for unknown mask type - 알 수 없는 타입은 기본적으로 full 마스킹을 사용한다', () => {
     // Given / When: 지원하지 않는 type이 들어온다.
     const value = maskValue('any', { type: 'unknown' as never });
