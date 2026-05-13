@@ -60,8 +60,18 @@ export { withLogging, type WithLoggingOptions } from './with-logging';
 /** Low-level masking helpers for objects and primitive-like values. */
 export { maskObject, maskValue } from './masker/masker';
 
-/** Notification rule registry that routes logs to external channels. */
-export { NotificationManager, type NotificationRule } from './notification/notification-manager';
+/** Notification route registry that evaluates delivery conditions and fans out to resources. */
+export {
+  NotificationManager,
+  type NotificationCondition,
+  type NotificationFingerprintPreset,
+  type NotificationFingerprintResolver,
+  type NotificationResourceFactory,
+  type NotificationResourceName,
+  type NotificationRoute,
+  type NotificationRule,
+  type NotificationThresholdOptions,
+} from './notification/notification-manager';
 
 /** Shared notification channel contract and emitted log context shape. */
 export { type NotificationChannel, type LogContext } from './notification/notification-channel';
