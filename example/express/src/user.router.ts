@@ -8,6 +8,7 @@ export function createUserRouter() {
 
   router.get('/', controller.getUsers);
   router.post('/', controller.createUser);
+  router.post('/alert-threshold', controller.triggerAlertThreshold);
   router.get('/health', controller.getHealth);
 
   return router;

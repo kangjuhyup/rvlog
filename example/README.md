@@ -6,9 +6,9 @@
 
 ### Node (서버)
 
-- `basic/` — 프레임워크 없이 `Logger.configure()` + `@Logging` + `@MaskLog` + 파일 저장을 보여주는 순수 TypeScript 예제. `src/features/advanced-logging/usage-example.ts`에서 `LoggerSystem`, `withTags()`, `withFields()` 사용 예시를 함께 확인할 수 있습니다.
-- `express/` — `server → router → controller → service → dto` 흐름 + Slack 알림 + 파일 rotate. `src/features/advanced-logging/usage-example.ts`에서 서버 시작/유저 생성 시 구조화 태그 로그를 남기는 예시를 포함합니다.
-- `nestjs/` — `main → module → controller → service → dto` 흐름 + daily rotate. `src/features/advanced-logging/setup.ts`, `usage-example.ts`에서 `loggerSystem` 주입 방식과 구조화 메타데이터 로깅 예시를 확인할 수 있습니다.
+- `basic/` — 프레임워크 없이 `Logger.configure()` + `@Logging` + `@MaskLog` + 파일 저장을 보여주는 순수 TypeScript 예제. `src/features/alert-routing/usage-example.ts`에서 lazy 알림 리소스, threshold, 다중 리소스 fan-out 예시를 확인할 수 있습니다. 실제 메일 발송은 `@kangjuhyup/rvlog-email` 같은 분리 패키지로 교체하면 됩니다.
+- `express/` — `server → router → controller → service → dto` 흐름 + lazy 알림 리소스 + 파일 rotate. `POST /users/alert-threshold`에서 Express 라우터 기반 threshold/fan-out 예시를 확인할 수 있습니다.
+- `nestjs/` — `main → module → controller → service → dto` 흐름 + daily rotate. `POST /users/alert-threshold`에서 Nest provider로 구성한 lazy 알림 리소스, threshold, 다중 리소스 fan-out 예시를 확인할 수 있습니다.
 
 > Node 예제에서는 파일 저장을 위해 `@kangjuhyup/rvlog/node`의 `FileTransport`를 `transports` 옵션으로 주입합니다.
 
@@ -28,9 +28,11 @@
 - DTO 민감정보 마스킹(`@MaskLog`)
 - `@NoLog` 메서드 제외
 - Node: 파일 로그 + size/daily rotate
+- Node: lazy notification resource + threshold 기반 알림 발송
 - Browser: `SentryChannel`로 `ERROR -> Issue/Event`, `INFO/WARN -> Logs` 전송
 - Browser: 예제 기본 `environment`는 `local`, signup 성공 시 `Sentry.setUser()`로 user 식별 정보 설정, 브라우저별 `browserKey` tag 저장
 - `NotificationManager` + `CircuitBreaker` + 쿨다운
+- `NotificationManager.addLazyResource()` + `addRoute()` + threshold 조건
 
 ## 실행
 
