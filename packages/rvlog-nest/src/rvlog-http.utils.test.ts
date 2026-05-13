@@ -2,7 +2,7 @@ import 'reflect-metadata';
 import { describe, expect, it, vi } from 'vitest';
 import { ROUTE_ARGS_METADATA } from '@nestjs/common/constants';
 import { RouteParamtypes } from '@nestjs/common/enums/route-paramtypes.enum';
-import { MaskLog } from '@kangjuhyup/rvlog';
+import { LogLevel, MaskLog } from '@kangjuhyup/rvlog';
 import {
   assignPrototype,
   buildDuration,
@@ -70,6 +70,7 @@ describe('rvlog http utils', () => {
     expect(resolveHttpLoggingOptions({ context: 'HTTP' })).toEqual(
       expect.objectContaining({
         context: 'HTTP',
+        level: LogLevel.INFO,
         logBody: true,
         setResponseHeader: true,
       }),

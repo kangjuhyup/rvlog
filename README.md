@@ -88,6 +88,17 @@ class UserService {
 }
 ```
 
+Automatic entry and completion logs are emitted at `LogLevel.INFO` by default. Pass `level` when a service should log those lifecycle messages at another level; failures are still logged as `ERROR`.
+
+```ts
+@Logging({ level: LogLevel.WARN })
+class BillingService {
+  charge() {
+    return 'ok';
+  }
+}
+```
+
 ## Pretty Output
 
 Use `pretty: true` for the built-in compact console format, or pass an object when you only want to adjust a few parts without writing a full custom formatter.
@@ -121,7 +132,7 @@ For complete control over the output string, pass `formatter`.
 Use `withLogging()` when you want the same automatic logging behavior without class decorators.
 
 ```ts
-import { MaskLog, withLogging } from '@kangjuhyup/rvlog';
+import { LogLevel, MaskLog, withLogging } from '@kangjuhyup/rvlog';
 
 class SignupInput {
   @MaskLog({ type: 'email' })
@@ -137,6 +148,7 @@ async function signupImpl(input: SignupInput) {
 
 export const signup = withLogging(signupImpl, {
   context: 'signup',
+  level: LogLevel.DEBUG,
 });
 ```
 

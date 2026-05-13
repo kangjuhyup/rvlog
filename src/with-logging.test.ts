@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { LogLevel } from './log/log-level';
 import { createLoggerSystem, Logger } from './log/logger';
 import { MaskLog } from './decorators/mask-log.decorator';
 import { withLogging } from './with-logging';
@@ -60,6 +61,22 @@ describe('withLogging', () => {
 
     // Then: 원본 반환값이 그대로 전달된다.
     expect(result).toBe(42);
+  });
+
+  it('supports debug entry and completion logs - DEBUG 레벨로도 진입/완료 로그를 남긴다', () => {
+    const infoSpy = vi.spyOn(console, 'info').mockImplementation(() => {});
+    const debugSpy = vi.spyOn(console, 'debug').mockImplementation(() => {});
+
+    const wrapped = withLogging(
+      () => 'ok',
+      { context: 'svc', name: 'inspect', level: LogLevel.DEBUG },
+    );
+    wrapped();
+
+    expect(infoSpy).not.toHaveBeenCalled();
+    expect(debugSpy).toHaveBeenCalledTimes(2);
+    expect(debugSpy.mock.calls[0]?.[0]).toContain('inspect() called');
+    expect(debugSpy.mock.calls[1]?.[0]).toContain('inspect() completed');
   });
 
   it('logs and rethrows sync errors while notifying - 동기 예외는 로깅 후 다시 던지고 알림을 보낸다', () => {

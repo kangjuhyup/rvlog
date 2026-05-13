@@ -250,6 +250,26 @@ describe('RvlogHttpInterceptor', () => {
     expect(infoSpy.mock.calls[1]?.[0]).toContain('abcde...');
   });
 
+  it('supports custom request and completion log levels - 요청/완료 로그 레벨을 옵션으로 바꿀 수 있다', async () => {
+    const infoSpy = vi.spyOn(console, 'info').mockImplementation(() => {});
+    const debugSpy = vi.spyOn(console, 'debug').mockImplementation(() => {});
+    Logger.configure({ pretty: true });
+
+    const interceptor = new RvlogHttpInterceptor({
+      context: 'HTTP',
+      level: LogLevel.DEBUG,
+      requestIdHeader: 'x-request-id',
+    });
+    const context = createHttpContext({ ok: true });
+
+    await lastValueFrom(interceptor.intercept(context as never, { handle: () => of({ ok: true }) }));
+
+    expect(infoSpy).not.toHaveBeenCalled();
+    expect(debugSpy).toHaveBeenCalledTimes(2);
+    expect(debugSpy.mock.calls[0]?.[0]).toContain('POST /users called');
+    expect(debugSpy.mock.calls[1]?.[0]).toContain('POST /users completed 201');
+  });
+
   it('logs query, params, and masked headers when enabled - 옵션이 켜지면 query/params/header도 함께 기록한다', async () => {
     const infoSpy = vi.spyOn(console, 'info').mockImplementation(() => {});
     Logger.configure({ pretty: true });

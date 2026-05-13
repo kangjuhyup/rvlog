@@ -1,9 +1,11 @@
+import { LogLevel } from './log/log-level';
 import { Logger, type LoggerSystem } from './log/logger';
 import {
   buildCalledLogMessage,
   buildCompletedLogMessage,
   buildFailedLogMessage,
   buildLogDuration,
+  logAtLevel,
   maskLoggingValue,
   notifyLoggedError,
 } from './log/logging-runtime';
@@ -13,6 +15,8 @@ export interface WithLoggingOptions {
   context: string;
   /** Optional function name override. Falls back to `fn.name` or `anonymous`. */
   name?: string;
+  /** Level used for automatic entry and completion logs. Defaults to `INFO`. */
+  level?: LogLevel;
   /** Optional isolated logger system. Falls back to global Logger configuration. */
   system?: LoggerSystem;
 }
@@ -20,8 +24,8 @@ export interface WithLoggingOptions {
 /**
  * 함수/훅 기반 코드에서도 `@Logging` 데코레이터와 동일한 자동 로깅을 얻기 위한 HOF.
  *
- * - 진입: `INFO name() called <serialized args>`
- * - 완료: `INFO name() completed (Xms)`
+ * - 진입: `level name() called <serialized args>` (기본 `INFO`)
+ * - 완료: `level name() completed (Xms)` (기본 `INFO`)
  * - 예외: `ERROR name() failed (Xms)` + NotificationManager 전달
  * - 객체 인자는 `@MaskLog` 규칙에 따라 자동 마스킹
  * - 동기/비동기 함수 모두 지원 (Promise 반환 시 체이닝)
@@ -38,13 +42,14 @@ export function withLogging<TArgs extends unknown[], TResult>(
 ): (...args: TArgs) => TResult {
   const { context, system } = options;
   const name = options.name ?? (fn.name || 'anonymous');
+  const level = options.level ?? LogLevel.INFO;
 
   return function wrapped(this: unknown, ...args: TArgs): TResult {
     const logger = system?.createLogger(context) ?? new Logger(context);
     const startTime = performance.now();
     const maskedArgs = args.map((arg) => maskLoggingValue(arg));
 
-    logger.info(buildCalledLogMessage(name, maskedArgs));
+    logAtLevel(logger, level, buildCalledLogMessage(name, maskedArgs));
 
     try {
       const result = fn.apply(this, args);
@@ -52,7 +57,7 @@ export function withLogging<TArgs extends unknown[], TResult>(
       if (result instanceof Promise) {
         return result
           .then((resolved) => {
-            logger.info(buildCompletedLogMessage(name, startTime));
+            logAtLevel(logger, level, buildCompletedLogMessage(name, startTime));
             return resolved;
           })
           .catch((error: unknown) => {
@@ -65,7 +70,7 @@ export function withLogging<TArgs extends unknown[], TResult>(
           }) as TResult;
       }
 
-      logger.info(buildCompletedLogMessage(name, startTime));
+      logAtLevel(logger, level, buildCompletedLogMessage(name, startTime));
       return result;
     } catch (error) {
       const normalizedError = error instanceof Error ? error : new Error(String(error));

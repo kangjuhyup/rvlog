@@ -88,6 +88,17 @@ class UserService {
 }
 ```
 
+자동 진입/완료 로그는 기본적으로 `LogLevel.INFO`로 남습니다. 서비스의 생명주기 로그를 다른 레벨로 남기고 싶다면 `level`을 넘기면 됩니다. 실패 로그는 기존처럼 항상 `ERROR`로 남습니다.
+
+```ts
+@Logging({ level: LogLevel.WARN })
+class BillingService {
+  charge() {
+    return "ok";
+  }
+}
+```
+
 ## Pretty 출력
 
 기본 보기 좋은 콘솔 포맷은 `pretty: true`로 켤 수 있습니다. 일부 요소만 바꾸고 싶다면 전체 `formatter`를 직접 만들지 않고 `pretty`에 객체 옵션을 넘길 수 있습니다.
@@ -121,7 +132,7 @@ Logger.configure(loggerOptions);
 클래스 데코레이터 대신 함수 단위로 동일한 자동 로깅을 적용하고 싶다면 `withLogging()`을 사용하면 됩니다.
 
 ```ts
-import { MaskLog, withLogging } from "@kangjuhyup/rvlog";
+import { LogLevel, MaskLog, withLogging } from "@kangjuhyup/rvlog";
 
 class SignupInput {
   @MaskLog({ type: "email" })
@@ -137,6 +148,7 @@ async function signupImpl(input: SignupInput) {
 
 export const signup = withLogging(signupImpl, {
   context: "signup",
+  level: LogLevel.DEBUG,
 });
 ```
 
