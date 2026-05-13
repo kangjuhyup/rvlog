@@ -1,0 +1,42 @@
+{
+  "name": "@kangjuhyup/rvlog-email",
+  "version": "0.1.0",
+  "description": "Email notification channel for rvlog",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "pack:check": "npm pack --dry-run",
+    "prepublishOnly": "npm run build"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kangjuhyup/rvlog.git",
+    "directory": "packages/rvlog-email"
+  },
+  "homepage": "https://github.com/kangjuhyup/rvlog/tree/main/packages/rvlog-email#readme",
+  "bugs": {
+    "url": "https://github.com/kangjuhyup/rvlog/issues"
+  },
+  "peerDependencies": {
+    "@kangjuhyup/rvlog": "^0.1.2"
+  },
+  "devDependencies": {
+    "@kangjuhyup/rvlog": "workspace:*",
+    "typescript": "^5.7.0",
+    "vitest": "^3.2.4"
+  }
+}
