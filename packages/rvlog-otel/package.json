@@ -1,0 +1,48 @@
+{
+  "name": "@kangjuhyup/rvlog-otel",
+  "version": "0.1.0",
+  "description": "OpenTelemetry adapter for rvlog — automatic metrics and tracing",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "pack:check": "npm pack --dry-run",
+    "prepublishOnly": "npm run build"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kangjuhyup/rvlog.git",
+    "directory": "packages/rvlog-otel"
+  },
+  "homepage": "https://github.com/kangjuhyup/rvlog/tree/main/packages/rvlog-otel#readme",
+  "bugs": {
+    "url": "https://github.com/kangjuhyup/rvlog/issues"
+  },
+  "peerDependencies": {
+    "@opentelemetry/api": "^1.0.0",
+    "@kangjuhyup/rvlog": "^0.1.2"
+  },
+  "peerDependenciesMeta": {
+    "@opentelemetry/api": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@opentelemetry/api": "^1.9.0",
+    "@kangjuhyup/rvlog": "workspace:*",
+    "typescript": "^5.7.0"
+  }
+}

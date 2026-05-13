@@ -8,7 +8,8 @@
       "@kangjuhyup/rvlog": ["./src/index.ts"],
       "@kangjuhyup/rvlog/node": ["./src/node.ts"],
       "@kangjuhyup/rvlog-nest": ["./packages/rvlog-nest/src/index.ts"],
-      "@kangjuhyup/rvlog-react": ["./packages/rvlog-react/src/index.ts"]
+      "@kangjuhyup/rvlog-react": ["./packages/rvlog-react/src/index.ts"],
+      "@kangjuhyup/rvlog-otel": ["./packages/rvlog-otel/src/index.ts"]
     },
     "noEmit": true,
     "strict": true,

@@ -71,6 +71,7 @@ export default defineConfig({
           /^@kangjuhyup\/rvlog\/node$/,
           /^@kangjuhyup\/rvlog-react$/,
           /^@kangjuhyup\/rvlog-nest$/,
+          /^@opentelemetry\/api$/,
         ],
       },
     },
@@ -104,6 +105,14 @@ export default defineConfig({
           include: ['packages/rvlog-react/**/*.test.{ts,tsx}'],
           exclude: sharedExclude,
           environment: 'jsdom',
+        },
+      },
+      {
+        test: {
+          name: 'otel',
+          include: ['packages/rvlog-otel/**/*.test.ts'],
+          exclude: sharedExclude,
+          environment: 'node',
         },
       },
     ],
