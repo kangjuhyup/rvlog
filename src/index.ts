@@ -46,7 +46,7 @@ export {
 } from './formatters/pretty-formatter';
 
 /** Class decorator that adds automatic method entry/exit/error logging. */
-export { Logging } from './decorators/logging.decorator';
+export { Logging, type LoggingOptions } from './decorators/logging.decorator';
 
 /** Opt-out decorator for methods that should not be auto-logged. */
 export { NoLog } from './decorators/no-log.decorator';

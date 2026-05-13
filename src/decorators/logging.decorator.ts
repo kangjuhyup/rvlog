@@ -1,15 +1,23 @@
+import { LogLevel } from '../log/log-level';
 import { Logger } from '../log/logger';
 import {
   buildCalledLogMessage,
   buildCompletedLogMessage,
   buildFailedLogMessage,
   buildLogDuration,
+  logAtLevel,
   maskLoggingValue,
   notifyLoggedError,
 } from '../log/logging-runtime';
 import { isNoLog } from './no-log.decorator';
 
 type MetadataType = { prototype?: object | null };
+type LoggingTarget = new (...args: any[]) => object;
+
+export interface LoggingOptions {
+  /** Level used for automatic entry and completion logs. Defaults to `INFO`. */
+  level?: LogLevel;
+}
 
 function maskArgument(
   arg: unknown,
@@ -18,8 +26,22 @@ function maskArgument(
   return maskLoggingValue(arg, parameterType);
 }
 
-export function Logging<T extends new (...args: any[]) => object>(target: T): T {
+export function Logging<T extends LoggingTarget>(target: T): T;
+export function Logging(options?: LoggingOptions): <T extends LoggingTarget>(target: T) => T;
+export function Logging<T extends LoggingTarget>(
+  targetOrOptions?: T | LoggingOptions,
+): T | (<TTarget extends LoggingTarget>(target: TTarget) => TTarget) {
+  if (typeof targetOrOptions === 'function') {
+    return applyLogging(targetOrOptions, {});
+  }
+
+  return <TTarget extends LoggingTarget>(target: TTarget): TTarget =>
+    applyLogging(target, targetOrOptions ?? {});
+}
+
+function applyLogging<T extends LoggingTarget>(target: T, options: LoggingOptions): T {
   const prototype = target.prototype;
+  const level = options.level ?? LogLevel.INFO;
 
   Object.defineProperty(prototype, 'logger', {
     configurable: true,
@@ -52,7 +74,7 @@ export function Logging<T extends new (...args: any[]) => object>(target: T): T 
         const startTime = performance.now();
         const maskedArgs = args.map((arg, index) => maskArgument(arg, parameterTypes?.[index]));
 
-        logger.info(buildCalledLogMessage(key, maskedArgs));
+        logAtLevel(logger, level, buildCalledLogMessage(key, maskedArgs));
 
         try {
           const result = originalMethod.apply(this, args);
@@ -60,7 +82,7 @@ export function Logging<T extends new (...args: any[]) => object>(target: T): T 
           if (result instanceof Promise) {
             return result
               .then((resolved) => {
-                logger.info(buildCompletedLogMessage(key, startTime));
+                logAtLevel(logger, level, buildCompletedLogMessage(key, startTime));
                 return resolved;
               })
               .catch((error: unknown) => {
@@ -73,7 +95,7 @@ export function Logging<T extends new (...args: any[]) => object>(target: T): T 
               });
           }
 
-          logger.info(buildCompletedLogMessage(key, startTime));
+          logAtLevel(logger, level, buildCompletedLogMessage(key, startTime));
           return result;
         } catch (error) {
           const normalizedError = error instanceof Error ? error : new Error(String(error));

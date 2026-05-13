@@ -3,6 +3,7 @@ import { Logging } from './logging.decorator';
 import { NoLog } from './no-log.decorator';
 import { MaskLog } from './mask-log.decorator';
 import { Logger } from '../log/logger';
+import { LogLevel } from '../log/log-level';
 
 class CreateUserDto {
   @MaskLog({ type: 'name' })
@@ -47,6 +48,20 @@ class UserService {
 
   @NoLog
   healthCheck(): string {
+    return 'ok';
+  }
+}
+
+@Logging({ level: LogLevel.WARN })
+class WarnLoggingService {
+  create(): string {
+    return 'ok';
+  }
+}
+
+@Logging({ level: LogLevel.DEBUG })
+class DebugLoggingService {
+  inspect(): string {
     return 'ok';
   }
 }
@@ -139,6 +154,32 @@ describe('@Logging', () => {
 
     // Then: 시작과 완료 로그가 모두 기록된다.
     expect(infoSpy).toHaveBeenCalledTimes(2);
+  });
+
+  it('supports custom entry and completion log levels - 진입/완료 로그 레벨을 옵션으로 바꿀 수 있다', () => {
+    const infoSpy = vi.spyOn(console, 'info').mockImplementation(() => {});
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    const service = new WarnLoggingService();
+    service.create();
+
+    expect(infoSpy).not.toHaveBeenCalled();
+    expect(warnSpy).toHaveBeenCalledTimes(2);
+    expect(warnSpy.mock.calls[0]?.[0]).toContain('create() called');
+    expect(warnSpy.mock.calls[1]?.[0]).toContain('create() completed');
+  });
+
+  it('supports debug entry and completion logs - DEBUG 레벨로도 진입/완료 로그를 남긴다', () => {
+    const infoSpy = vi.spyOn(console, 'info').mockImplementation(() => {});
+    const debugSpy = vi.spyOn(console, 'debug').mockImplementation(() => {});
+
+    const service = new DebugLoggingService();
+    service.inspect();
+
+    expect(infoSpy).not.toHaveBeenCalled();
+    expect(debugSpy).toHaveBeenCalledTimes(2);
+    expect(debugSpy.mock.calls[0]?.[0]).toContain('inspect() called');
+    expect(debugSpy.mock.calls[1]?.[0]).toContain('inspect() completed');
   });
 
   it('injects a logger property on the instance prototype - 인스턴스에서 this.logger를 사용할 수 있다', () => {

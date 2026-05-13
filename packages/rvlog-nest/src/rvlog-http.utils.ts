@@ -2,7 +2,7 @@ import { ROUTE_ARGS_METADATA } from '@nestjs/common/constants';
 import { RouteParamtypes } from '@nestjs/common/enums/route-paramtypes.enum';
 import type { ExecutionContext } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
-import { maskObject } from '@kangjuhyup/rvlog';
+import { LogLevel, maskObject } from '@kangjuhyup/rvlog';
 import type { RvlogHttpLoggingOptions } from './rvlog-http.interceptor';
 
 type HttpLikeRequest = {
@@ -228,6 +228,7 @@ export function resolveHttpLoggingOptions(
     logParams: options?.logParams ?? true,
     logHeaders: options?.logHeaders ?? false,
     logResponseBody: options?.logResponseBody ?? false,
+    level: options?.level ?? LogLevel.INFO,
     excludePaths: options?.excludePaths ?? [],
     maskHeaders: options?.maskHeaders ?? defaultMaskedHeaders(),
     requestIdHeader: options?.requestIdHeader ?? 'x-request-id',

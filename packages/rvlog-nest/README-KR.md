@@ -50,6 +50,7 @@ import { RvlogNestModule } from '@kangjuhyup/rvlog-nest';
         ],
       },
       http: {
+        level: LogLevel.INFO,
         excludePaths: ['/health'],
       },
     }),
@@ -76,6 +77,7 @@ export class AppModule {}
 RvlogNestModule.forRoot({
   http: {
     context: 'HTTP',
+    level: LogLevel.INFO,
     logBody: true,
     logQuery: true,
     logParams: true,
@@ -124,7 +126,7 @@ const system = createLoggerSystem({
     RvlogNestModule.forRoot({
       loggerSystem: system,
       logger: { minLevel: LogLevel.INFO },
-      http: { context: 'HTTP' },
+      http: { context: 'HTTP', level: LogLevel.DEBUG },
     }),
   ],
 })

@@ -12,6 +12,7 @@ import {
   LogLevel,
   Logger,
   LoggerSystem,
+  logAtLevel,
   type LoggerContextValue,
 } from "@kangjuhyup/rvlog";
 import {
@@ -31,6 +32,7 @@ export interface RvlogHttpLoggingOptions {
   logParams?: boolean;
   logHeaders?: boolean;
   logResponseBody?: boolean;
+  level?: LogLevel;
   excludePaths?: string[];
   maskHeaders?: string[];
   requestIdHeader?: string;
@@ -117,7 +119,7 @@ export class RvlogHttpInterceptor implements NestInterceptor {
 
     return new Observable((subscriber) => {
       requestContextStorage.run({ requestId }, () => {
-        logger.info(`${method} ${path} called${requestSuffix}`);
+        logAtLevel(logger, this.options.level, `${method} ${path} called${requestSuffix}`);
 
         const subscription = next.handle().subscribe({
           next: (responseBody) => {
@@ -129,11 +131,15 @@ export class RvlogHttpInterceptor implements NestInterceptor {
             );
 
             if (responsePayload) {
-              logger.info(
+              logAtLevel(
+                logger,
+                this.options.level,
                 `${method} ${path} completed ${statusCode} (${duration}) ${runtime.stringify(responsePayload)}`,
               );
             } else {
-              logger.info(
+              logAtLevel(
+                logger,
+                this.options.level,
                 `${method} ${path} completed ${statusCode} (${duration})`,
               );
             }
