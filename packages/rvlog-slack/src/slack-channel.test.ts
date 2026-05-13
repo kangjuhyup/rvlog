@@ -42,8 +42,25 @@ describe('SlackChannel package', () => {
     expect(body.blocks[0].text.text).toContain('package slack test');
   });
 
-  it('throws when slack returns a non-ok response - Slack 응답 실패 시 예외를 던진다', async () => {
-    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: false, status: 500 })));
+  it.each([400, 401, 403, 404, 429, 500, 503])(
+    'throws when slack returns status %s - Slack 응답 상태가 실패면 예외를 던진다',
+    async (status) => {
+      vi.stubGlobal('fetch', vi.fn(async () => ({ ok: false, status })));
+
+      await expect(
+        new SlackChannel('https://hooks.slack.test/services/test').send(
+          LogLevel.ERROR,
+          'package slack test',
+          context,
+        ),
+      ).rejects.toThrow(`Slack notification failed with status ${status}`);
+    },
+  );
+
+  it('propagates fetch failures - Slack 요청 자체가 실패하면 예외를 전달한다', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => {
+      throw new Error('network unavailable');
+    }));
 
     await expect(
       new SlackChannel('https://hooks.slack.test/services/test').send(
@@ -51,7 +68,7 @@ describe('SlackChannel package', () => {
         'package slack test',
         context,
       ),
-    ).rejects.toThrow('Slack notification failed with status 500');
+    ).rejects.toThrow('network unavailable');
   });
 });
 

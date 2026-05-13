@@ -62,8 +62,25 @@ describe('DiscordChannel package', () => {
     expect(body.embeds[0].color).toBe(color);
   });
 
-  it('throws when discord returns a non-ok response - Discord 응답 실패 시 예외를 던진다', async () => {
-    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: false, status: 500 })));
+  it.each([400, 401, 403, 404, 429, 500, 503])(
+    'throws when discord returns status %s - Discord 응답 상태가 실패면 예외를 던진다',
+    async (status) => {
+      vi.stubGlobal('fetch', vi.fn(async () => ({ ok: false, status })));
+
+      await expect(
+        new DiscordChannel('https://discord.test/api/webhooks/test').send(
+          LogLevel.ERROR,
+          'package discord test',
+          context,
+        ),
+      ).rejects.toThrow(`Discord notification failed with status ${status}`);
+    },
+  );
+
+  it('propagates fetch failures - Discord 요청 자체가 실패하면 예외를 전달한다', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => {
+      throw new Error('network unavailable');
+    }));
 
     await expect(
       new DiscordChannel('https://discord.test/api/webhooks/test').send(
@@ -71,7 +88,7 @@ describe('DiscordChannel package', () => {
         'package discord test',
         context,
       ),
-    ).rejects.toThrow('Discord notification failed with status 500');
+    ).rejects.toThrow('network unavailable');
   });
 });
 
