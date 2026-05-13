@@ -59,6 +59,10 @@ export default defineConfig({
         find: /^@kangjuhyup\/rvlog-react$/,
         replacement: resolve(import.meta.dirname, 'packages/rvlog-react/src/index.ts'),
       },
+      {
+        find: /^@kangjuhyup\/rvlog-email$/,
+        replacement: resolve(import.meta.dirname, 'packages/rvlog-email/src/index.ts'),
+      },
     ],
   },
   test: {
@@ -111,6 +115,28 @@ export default defineConfig({
         test: {
           name: 'otel',
           include: ['packages/rvlog-otel/**/*.test.ts'],
+          exclude: sharedExclude,
+          environment: 'node',
+        },
+      },
+      {
+        resolve: {
+          alias: [
+            {
+              find: /^@kangjuhyup\/rvlog$/,
+              replacement: resolve(import.meta.dirname, 'dist/index.js'),
+            },
+          ],
+        },
+        test: {
+          name: 'notification-packages',
+          include: [
+            'packages/rvlog-slack/**/*.test.ts',
+            'packages/rvlog-discord/**/*.test.ts',
+            'packages/rvlog-webhook/**/*.test.ts',
+            'packages/rvlog-sentry/**/*.test.ts',
+            'packages/rvlog-email/**/*.test.ts',
+          ],
           exclude: sharedExclude,
           environment: 'node',
         },

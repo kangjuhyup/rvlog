@@ -7,6 +7,12 @@
 - `@kangjuhyup/rvlog`
 - `@kangjuhyup/rvlog-react`
 - `@kangjuhyup/rvlog-nest`
+- `@kangjuhyup/rvlog-otel`
+- `@kangjuhyup/rvlog-slack`
+- `@kangjuhyup/rvlog-discord`
+- `@kangjuhyup/rvlog-webhook`
+- `@kangjuhyup/rvlog-sentry`
+- `@kangjuhyup/rvlog-email`
 
 ## 최초 1회 설정
 
@@ -64,6 +70,12 @@ npm publish는 **Version PR이 머지된 뒤에** 실행됩니다.
    - `@kangjuhyup/rvlog`
    - `@kangjuhyup/rvlog-react`
    - `@kangjuhyup/rvlog-nest`
+   - `@kangjuhyup/rvlog-otel`
+   - `@kangjuhyup/rvlog-slack`
+   - `@kangjuhyup/rvlog-discord`
+   - `@kangjuhyup/rvlog-webhook`
+   - `@kangjuhyup/rvlog-sentry`
+   - `@kangjuhyup/rvlog-email`
 
 ## 한눈에 보는 요약
 

@@ -187,6 +187,27 @@ importers:
         specifier: ^5.7.0
         version: 5.9.3
 
+  packages/rvlog-discord:
+    devDependencies:
+      '@kangjuhyup/rvlog':
+        specifier: workspace:*
+        version: link:../..
+      typescript:
+        specifier: ^5.7.0
+        version: 5.9.3
+
+  packages/rvlog-email:
+    devDependencies:
+      '@kangjuhyup/rvlog':
+        specifier: workspace:*
+        version: link:../..
+      typescript:
+        specifier: ^5.7.0
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.4(@types/node@22.19.17)(jsdom@29.0.2)(terser@5.46.2)
+
   packages/rvlog-otel:
     devDependencies:
       '@kangjuhyup/rvlog':
@@ -228,6 +249,33 @@ importers:
       vitest:
         specifier: ^3.2.4
         version: 3.2.4(@types/node@22.19.17)(jsdom@29.0.2)(terser@5.46.2)
+
+  packages/rvlog-sentry:
+    devDependencies:
+      '@kangjuhyup/rvlog':
+        specifier: workspace:*
+        version: link:../..
+      typescript:
+        specifier: ^5.7.0
+        version: 5.9.3
+
+  packages/rvlog-slack:
+    devDependencies:
+      '@kangjuhyup/rvlog':
+        specifier: workspace:*
+        version: link:../..
+      typescript:
+        specifier: ^5.7.0
+        version: 5.9.3
+
+  packages/rvlog-webhook:
+    devDependencies:
+      '@kangjuhyup/rvlog':
+        specifier: workspace:*
+        version: link:../..
+      typescript:
+        specifier: ^5.7.0
+        version: 5.9.3
 
 packages:
 

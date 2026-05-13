@@ -40,7 +40,7 @@
     "changeset:version": "changeset version",
     "release": "changeset publish",
     "pack:check": "npm pack --dry-run",
-    "pack:check:all": "npm run pack:check && npm --prefix packages/rvlog-react run pack:check && npm --prefix packages/rvlog-nest run pack:check",
+    "pack:check:all": "npm run pack:check && npm --prefix packages/rvlog-react run pack:check && npm --prefix packages/rvlog-nest run pack:check && npm --prefix packages/rvlog-otel run pack:check && npm --prefix packages/rvlog-slack run pack:check && npm --prefix packages/rvlog-discord run pack:check && npm --prefix packages/rvlog-webhook run pack:check && npm --prefix packages/rvlog-sentry run pack:check && npm --prefix packages/rvlog-email run pack:check",
     "prepublishOnly": "npm run build",
     "benchmark": "tsc --project tsconfig.benchmark.json && node dist-benchmark/benchmark/index.js",
     "example:basic": "pnpm -C example/basic dev",

@@ -8,8 +8,13 @@
       "@kangjuhyup/rvlog": ["./src/index.ts"],
       "@kangjuhyup/rvlog/node": ["./src/node.ts"],
       "@kangjuhyup/rvlog-nest": ["./packages/rvlog-nest/src/index.ts"],
+      "@kangjuhyup/rvlog-discord": ["./packages/rvlog-discord/src/index.ts"],
+      "@kangjuhyup/rvlog-email": ["./packages/rvlog-email/src/index.ts"],
       "@kangjuhyup/rvlog-react": ["./packages/rvlog-react/src/index.ts"],
-      "@kangjuhyup/rvlog-otel": ["./packages/rvlog-otel/src/index.ts"]
+      "@kangjuhyup/rvlog-otel": ["./packages/rvlog-otel/src/index.ts"],
+      "@kangjuhyup/rvlog-sentry": ["./packages/rvlog-sentry/src/index.ts"],
+      "@kangjuhyup/rvlog-slack": ["./packages/rvlog-slack/src/index.ts"],
+      "@kangjuhyup/rvlog-webhook": ["./packages/rvlog-webhook/src/index.ts"]
     },
     "noEmit": true,
     "strict": true,
