@@ -1,5 +1,6 @@
 import { LogLevel } from './log-level';
 import { Logger, type LoggerLike, type LoggerSystem } from './logger';
+import { parseErrorStackLocation } from './log-serializer';
 import { maskObject } from '../masker/masker';
 import type { LogContext } from '../notification/notification-channel';
 
@@ -103,5 +104,12 @@ export function notifyLoggedError(
     timestamp: new Date(),
   };
 
-  notifier.notify(LogLevel.ERROR, `${name}() failed (${duration}) ${error.name}: ${error.message}`, payload);
+  const location = parseErrorStackLocation(error.stack)?.raw;
+  const locationSuffix = location ? `\n${location}` : '';
+
+  notifier.notify(
+    LogLevel.ERROR,
+    `${name}() failed (${duration}) ${error.name}: ${error.message}${locationSuffix}`,
+    payload,
+  );
 }
