@@ -215,10 +215,10 @@ const notification = new NotificationManager()
     return new SlackChannel(process.env.SLACK_WEBHOOK_URL ?? "");
   })
   .addLazyResource("email", async () => {
-    const { EmailChannel } = await import("@kangjuhyup/rvlog-email");
+    const { EmailChannel, createNodemailerAdapter } = await import("@kangjuhyup/rvlog-email");
     return new EmailChannel({
       to: "ops@example.com",
-      sendMail: (message) => mailer.sendMail(message),
+      transport: createNodemailerAdapter(mailer),
     });
   })
   .addRoute({

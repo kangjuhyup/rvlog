@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { LogLevel, type LogContext } from '@kangjuhyup/rvlog';
-import { EmailChannel } from './email-channel';
+import { EmailChannel, type EmailTransport } from './email-channel';
 
 const context: LogContext = {
   className: 'UserService',
@@ -73,5 +73,27 @@ describe('EmailChannel', () => {
       text: 'body careful',
       html: '<p>careful</p>',
     });
+  });
+
+  it('supports a mail transport adapter - 메일 transport adapter를 사용할 수 있다', async () => {
+    const transport: EmailTransport = {
+      send: vi.fn(),
+    };
+    const channel = new EmailChannel({
+      to: 'ops@example.com',
+      from: 'rvlog@example.com',
+      transport,
+    });
+
+    await channel.send(LogLevel.ERROR, 'failed', context);
+
+    expect(transport.send).toHaveBeenCalledWith(
+      expect.objectContaining({
+        to: 'ops@example.com',
+        from: 'rvlog@example.com',
+        subject: '[rvlog:ERROR] UserService.create',
+        text: expect.stringContaining('Message: failed'),
+      }),
+    );
   });
 });

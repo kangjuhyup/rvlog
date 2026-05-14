@@ -14,13 +14,27 @@ export interface EmailMessage extends EmailContent {
 
 export type EmailSendMail = (message: EmailMessage) => Promise<void> | void;
 
-export interface EmailChannelOptions {
+export interface EmailTransport {
+  send(message: EmailMessage): Promise<void> | void;
+}
+
+interface EmailChannelBaseOptions {
   to: string | string[];
   from?: string;
-  sendMail: EmailSendMail;
   subject?: string | ((level: LogLevel, message: string, context: LogContext) => string);
   format?: (level: LogLevel, message: string, context: LogContext) => EmailContent;
 }
+
+export type EmailChannelOptions = EmailChannelBaseOptions & (
+  | {
+      sendMail: EmailSendMail;
+      transport?: never;
+    }
+  | {
+      transport: EmailTransport;
+      sendMail?: never;
+    }
+);
 
 export class EmailChannel implements NotificationChannel {
   constructor(private readonly options: EmailChannelOptions) {}
@@ -31,11 +45,24 @@ export class EmailChannel implements NotificationChannel {
       text: this.formatText(level, message, context),
     };
 
-    await this.options.sendMail({
+    await this.resolveSendMail()({
       to: this.options.to,
       from: this.options.from,
       ...content,
     });
+  }
+
+  private resolveSendMail(): EmailSendMail {
+    if ('sendMail' in this.options && this.options.sendMail) {
+      return this.options.sendMail;
+    }
+
+    if ('transport' in this.options && this.options.transport) {
+      const { transport } = this.options;
+      return (message) => transport.send(message);
+    }
+
+    throw new Error('EmailChannel requires either sendMail or transport');
   }
 
   private resolveSubject(level: LogLevel, message: string, context: LogContext): string {
