@@ -11,6 +11,7 @@ export {
   createNodemailerAdapter,
   createResendAdapter,
   createSesAdapter,
+  createSendMailAdapter,
   createSmtpAdapter,
   toSesEmailInput,
   type NodemailerLike,
@@ -18,5 +19,6 @@ export {
   type SesClientLike,
   type SesCommandFactory,
   type SesEmailInput,
+  type SendMailLike,
   type SmtpLike,
 } from './email-adapters';

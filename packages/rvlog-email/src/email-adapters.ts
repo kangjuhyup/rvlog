@@ -2,13 +2,12 @@ import type { EmailMessage, EmailTransport } from './email-channel';
 
 type MaybePromise<T> = T | Promise<T>;
 
-export interface NodemailerLike {
+export interface SendMailLike {
   sendMail(message: EmailMessage): MaybePromise<unknown>;
 }
 
-export interface SmtpLike {
-  sendMail(message: EmailMessage): MaybePromise<unknown>;
-}
+export type NodemailerLike = SendMailLike;
+export type SmtpLike = SendMailLike;
 
 export interface ResendLike {
   emails: {
@@ -42,7 +41,7 @@ export interface SesEmailInput {
   };
 }
 
-export function createNodemailerAdapter(transporter: NodemailerLike): EmailTransport {
+export function createSendMailAdapter(transporter: SendMailLike): EmailTransport {
   return {
     async send(message) {
       await transporter.sendMail(message);
@@ -50,12 +49,12 @@ export function createNodemailerAdapter(transporter: NodemailerLike): EmailTrans
   };
 }
 
+export function createNodemailerAdapter(transporter: NodemailerLike): EmailTransport {
+  return createSendMailAdapter(transporter);
+}
+
 export function createSmtpAdapter(transporter: SmtpLike): EmailTransport {
-  return {
-    async send(message) {
-      await transporter.sendMail(message);
-    },
-  };
+  return createSendMailAdapter(transporter);
 }
 
 export function createResendAdapter(client: ResendLike): EmailTransport {

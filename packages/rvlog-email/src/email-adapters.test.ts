@@ -3,6 +3,7 @@ import {
   createNodemailerAdapter,
   createResendAdapter,
   createSesAdapter,
+  createSendMailAdapter,
   createSmtpAdapter,
   toSesEmailInput,
   type EmailMessage,
@@ -17,6 +18,16 @@ const message: EmailMessage = {
 };
 
 describe('email adapters', () => {
+  it('wraps a sendMail-compatible transporter - sendMail 호환 transporter를 감싼다', async () => {
+    const transporter = {
+      sendMail: vi.fn(),
+    };
+
+    await createSendMailAdapter(transporter).send(message);
+
+    expect(transporter.sendMail).toHaveBeenCalledWith(message);
+  });
+
   it('wraps a nodemailer-like transporter - nodemailer 형태의 transporter를 감싼다', async () => {
     const transporter = {
       sendMail: vi.fn(),
