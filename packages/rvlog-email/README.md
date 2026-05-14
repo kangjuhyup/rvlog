@@ -2,7 +2,7 @@
 
 Email notification channel for `@kangjuhyup/rvlog`.
 
-`EmailChannel` does not force a mail SDK. Pass your own `sendMail` function, or use one of the lightweight adapters for Nodemailer, Resend, or AWS SES.
+`EmailChannel` does not force a mail SDK. Pass your own `sendMail` function, or use one of the lightweight adapters for SMTP, Nodemailer, Resend, or AWS SES.
 
 ```ts
 import { LogLevel, NotificationManager } from '@kangjuhyup/rvlog';
@@ -24,6 +24,31 @@ const notification = new NotificationManager()
 ```
 
 ## Provider adapters
+
+### SMTP
+
+Use `createSmtpAdapter()` with any SMTP transporter that exposes `sendMail()`. For Nodemailer SMTP, create the transporter in your app and pass it here.
+
+```ts
+import nodemailer from 'nodemailer';
+import { EmailChannel, createSmtpAdapter } from '@kangjuhyup/rvlog-email';
+
+const smtpTransporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST,
+  port: Number(process.env.SMTP_PORT ?? 587),
+  secure: false,
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+  },
+});
+
+new EmailChannel({
+  to: 'ops@example.com',
+  from: 'rvlog@example.com',
+  transport: createSmtpAdapter(smtpTransporter),
+});
+```
 
 ### Nodemailer
 

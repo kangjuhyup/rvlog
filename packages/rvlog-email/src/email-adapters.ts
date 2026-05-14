@@ -6,6 +6,10 @@ export interface NodemailerLike {
   sendMail(message: EmailMessage): MaybePromise<unknown>;
 }
 
+export interface SmtpLike {
+  sendMail(message: EmailMessage): MaybePromise<unknown>;
+}
+
 export interface ResendLike {
   emails: {
     send(message: EmailMessage): MaybePromise<unknown>;
@@ -39,6 +43,14 @@ export interface SesEmailInput {
 }
 
 export function createNodemailerAdapter(transporter: NodemailerLike): EmailTransport {
+  return {
+    async send(message) {
+      await transporter.sendMail(message);
+    },
+  };
+}
+
+export function createSmtpAdapter(transporter: SmtpLike): EmailTransport {
   return {
     async send(message) {
       await transporter.sendMail(message);

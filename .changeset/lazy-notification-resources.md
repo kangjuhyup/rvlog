@@ -7,4 +7,4 @@
 "@kangjuhyup/rvlog-email": minor
 ---
 
-Add route-based notification resources with lazy channel loading, threshold conditions, separated notification channel packages, and provider adapters for the email channel.
+Add route-based notification resources with lazy channel loading, threshold conditions, separated notification channel packages, and SMTP/provider adapters for the email channel.
