@@ -1,6 +1,6 @@
 {
   "name": "@kangjuhyup/rvlog-otel",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "OpenTelemetry adapter for rvlog — automatic metrics and tracing",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -33,7 +33,7 @@
   },
   "peerDependencies": {
     "@opentelemetry/api": "^1.0.0",
-    "@kangjuhyup/rvlog": "^0.1.2"
+    "@kangjuhyup/rvlog": "^0.2.0"
   },
   "peerDependenciesMeta": {
     "@opentelemetry/api": {
