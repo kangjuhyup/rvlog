@@ -14,3 +14,7 @@
 - `docs-writer.md`
 - `project-architect.md`
 - `code-writer.md`
+
+Codex 매핑:
+- Codex용 역할 인덱스는 `../.codex/agents.toml`에서 관리합니다.
+- 역할 문서에서 스킬을 참조할 때는 운영체제별 절대경로가 아니라 `../.skills/.../SKILL.md` 상대경로를 사용합니다.

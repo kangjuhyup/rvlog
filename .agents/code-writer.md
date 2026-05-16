@@ -27,9 +27,9 @@ description: 설계에 따라 실제 기능 구현과 코드 변경을 담당하
 
 ## Skills To Load
 
-- [project-architecture](C:\Users\jhkang\Documents\Workspace\rvlog\.skills\project-architecture\SKILL.md)
-- [testing](C:\Users\jhkang\Documents\Workspace\rvlog\.skills\testing\SKILL.md)
-- 필요 시 [release](C:\Users\jhkang\Documents\Workspace\rvlog\.skills\release\SKILL.md)
+- [project-architecture](../.skills/project-architecture/SKILL.md)
+- [testing](../.skills/testing/SKILL.md)
+- 필요 시 [release](../.skills/release/SKILL.md)
 
 ## Priorities
 
