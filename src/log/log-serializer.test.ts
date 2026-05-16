@@ -36,6 +36,41 @@ describe('log serializer', () => {
     expect(stringifyLogValue(value)).toContain('[Circular]');
   });
 
+  it('preserves Error stack and first frame location - Error stack과 첫 프레임 위치를 보존한다', () => {
+    const error = new Error('boom');
+    error.stack = [
+      'Error: boom',
+      '    at UserService.create (/app/src/user.service.ts:12:34)',
+      '    at run (/app/src/main.ts:5:6)',
+    ].join('\n');
+
+    const sanitized = sanitizeLogValue(error) as {
+      name: string;
+      message: string;
+      stack: string;
+      location: {
+        raw: string;
+        functionName: string;
+        file: string;
+        line: number;
+        column: number;
+      };
+    };
+
+    expect(sanitized).toMatchObject({
+      name: 'Error',
+      message: 'boom',
+      stack: expect.stringContaining('/app/src/user.service.ts:12:34'),
+      location: {
+        raw: 'at UserService.create (/app/src/user.service.ts:12:34)',
+        functionName: 'UserService.create',
+        file: '/app/src/user.service.ts',
+        line: 12,
+        column: 34,
+      },
+    });
+  });
+
   it('stringifyLogValue truncates plain string inputs directly - 문자열 입력도 직접 잘라낸다', () => {
     expect(
       stringifyLogValue('abcdefghij', {

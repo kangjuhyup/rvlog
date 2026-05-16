@@ -150,6 +150,48 @@ describe('Logger', () => {
     );
   });
 
+  it('preserves error stack traces in console and transport logs - 에러 stack trace를 콘솔과 transport 로그에 보존한다', async () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const transport = { write: vi.fn() };
+    const error = new Error('database down');
+    error.stack = [
+      'Error: database down',
+      '    at UserService.create (/app/src/user.service.ts:12:34)',
+      '    at run (/app/src/main.ts:5:6)',
+    ].join('\n');
+
+    Logger.configure({
+      pretty: {
+        showTimestamp: false,
+      },
+      transports: [transport],
+    });
+
+    new Logger('UserService').error('create failed', error);
+    await Promise.resolve();
+
+    const consoleMessage = errorSpy.mock.calls[0]?.[0];
+    const consoleErrorPayload = errorSpy.mock.calls[0]?.[1];
+    const transportRecord = transport.write.mock.calls[0]?.[0];
+    const formatted = transport.write.mock.calls[0]?.[1];
+
+    expect(consoleMessage).toContain('create failed');
+    expect(consoleMessage).toContain('/app/src/user.service.ts:12:34');
+    expect(consoleErrorPayload).toMatchObject({
+      name: 'Error',
+      message: 'database down',
+      stack: expect.stringContaining('UserService.create'),
+      location: expect.objectContaining({
+        functionName: 'UserService.create',
+        file: '/app/src/user.service.ts',
+        line: 12,
+        column: 34,
+      }),
+    });
+    expect(transportRecord.message).toContain('/app/src/user.service.ts:12:34');
+    expect(formatted).toContain('/app/src/user.service.ts:12:34');
+  });
+
   it('routes debug logs to console.debug - debug는 console.debug로 전달된다', () => {
     // Given: DEBUG 레벨까지 허용된 로거가 있다.
     const debugSpy = vi.spyOn(console, 'debug').mockImplementation(() => {});

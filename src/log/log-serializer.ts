@@ -4,6 +4,8 @@ export interface LogSerializeOptions {
   maxDepth?: number;
   /** Maximum number of characters preserved for a single string. */
   maxStringLength?: number;
+  /** Maximum number of characters preserved for an Error stack trace. */
+  maxStackLength?: number;
   /** Maximum number of array items preserved before truncation markers are added. */
   maxArrayLength?: number;
   /** Maximum number of object keys preserved before `__truncatedKeys` is added. */
@@ -15,10 +17,28 @@ export interface LogSerializeOptions {
 const DEFAULT_SERIALIZE_OPTIONS: Required<LogSerializeOptions> = {
   maxDepth: 4,
   maxStringLength: 200,
+  maxStackLength: 4000,
   maxArrayLength: 20,
   maxObjectKeys: 30,
   truncateSuffix: '...<truncated>',
 };
+
+export interface ErrorStackLocation {
+  raw: string;
+  functionName?: string;
+  file?: string;
+  line?: number;
+  column?: number;
+}
+
+export interface SerializedError {
+  [key: string]: unknown;
+  name: string;
+  message: string;
+  stack?: string;
+  location?: ErrorStackLocation;
+  cause?: unknown;
+}
 
 function resolveOptions(options?: LogSerializeOptions): Required<LogSerializeOptions> {
   return {
@@ -27,12 +47,16 @@ function resolveOptions(options?: LogSerializeOptions): Required<LogSerializeOpt
   };
 }
 
-function truncateString(value: string, options: Required<LogSerializeOptions>): string {
-  if (value.length <= options.maxStringLength) {
+function truncateString(
+  value: string,
+  options: Required<LogSerializeOptions>,
+  maxLength = options.maxStringLength,
+): string {
+  if (value.length <= maxLength) {
     return value;
   }
 
-  return `${value.slice(0, options.maxStringLength)}${options.truncateSuffix}`;
+  return `${value.slice(0, maxLength)}${options.truncateSuffix}`;
 }
 
 function isObjectLike(value: unknown): value is Record<string, unknown> {
@@ -55,6 +79,74 @@ function summarizeDepthLimited(value: unknown): string {
   return String(value);
 }
 
+export function parseErrorStackLocation(stack?: string): ErrorStackLocation | undefined {
+  const frame = stack
+    ?.split('\n')
+    .slice(1)
+    .map((line) => line.trim())
+    .find((line) => line.startsWith('at '));
+
+  if (!frame) {
+    return undefined;
+  }
+
+  const withoutPrefix = frame.slice(3);
+  const match = /^(?:(.*?)\s+\()?(.+?):(\d+):(\d+)\)?$/.exec(withoutPrefix);
+
+  if (!match) {
+    return {
+      raw: frame,
+    };
+  }
+
+  const [, functionName, file, line, column] = match;
+
+  return {
+    raw: frame,
+    functionName: functionName || undefined,
+    file,
+    line: Number(line),
+    column: Number(column),
+  };
+}
+
+function sanitizeError(
+  error: Error,
+  options: Required<LogSerializeOptions>,
+  depth: number,
+  visited: WeakMap<object, unknown>,
+): SerializedError {
+  const serialized: SerializedError = {
+    name: error.name,
+    message: truncateString(error.message, options),
+  };
+
+  if (error.stack) {
+    serialized.stack = truncateString(error.stack, options, options.maxStackLength);
+    serialized.location = parseErrorStackLocation(error.stack);
+  }
+
+  if ('cause' in error && error.cause !== undefined) {
+    serialized.cause = sanitizeInternal(error.cause, options, depth + 1, visited);
+  }
+
+  const customEntries = Object.entries(error);
+  for (const [key, nestedValue] of customEntries) {
+    if (key in serialized) {
+      continue;
+    }
+
+    serialized[key as keyof SerializedError] = sanitizeInternal(
+      nestedValue,
+      options,
+      depth + 1,
+      visited,
+    ) as never;
+  }
+
+  return serialized;
+}
+
 function sanitizeInternal(
   value: unknown,
   options: Required<LogSerializeOptions>,
@@ -75,6 +167,11 @@ function sanitizeInternal(
 
   if (value instanceof Date) {
     return value.toISOString();
+  }
+
+  if (value instanceof Error) {
+    visited.set(value, '[Error]');
+    return sanitizeError(value, options, depth, visited);
   }
 
   if (depth >= options.maxDepth) {

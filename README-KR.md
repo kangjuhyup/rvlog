@@ -8,7 +8,7 @@
 - 클래스 없이도 쓸 수 있는 `withLogging()`
 - 이름, 이메일, 전화번호, 비밀번호 등을 가릴 수 있는 `@MaskLog`
 - 헬스체크나 고빈도 메서드를 제외하는 `@NoLog`
-- Slack, Discord, Webhook, Sentry 채널을 붙일 수 있는 `NotificationManager`
+- route fan-out, lazy notification resource, cooldown, threshold를 지원하는 `NotificationManager`
 - Node.js 환경에서 파일 저장과 rotate를 지원하는 `FileTransport`
 
 ## 설치
@@ -24,12 +24,12 @@ pnpm add @kangjuhyup/rvlog reflect-metadata
 yarn add @kangjuhyup/rvlog reflect-metadata
 ```
 
-선택 의존성:
+선택 알림 채널 패키지:
 
 ```bash
-npm install @sentry/browser
-pnpm add @sentry/browser
-yarn add @sentry/browser
+npm install @kangjuhyup/rvlog-slack @kangjuhyup/rvlog-discord @kangjuhyup/rvlog-webhook @kangjuhyup/rvlog-sentry @kangjuhyup/rvlog-email
+pnpm add @kangjuhyup/rvlog-slack @kangjuhyup/rvlog-discord @kangjuhyup/rvlog-webhook @kangjuhyup/rvlog-sentry @kangjuhyup/rvlog-email
+yarn add @kangjuhyup/rvlog-slack @kangjuhyup/rvlog-discord @kangjuhyup/rvlog-webhook @kangjuhyup/rvlog-sentry @kangjuhyup/rvlog-email
 ```
 
 관련 패키지:
@@ -204,22 +204,44 @@ Logger.configure({
 
 ## 알림 연동
 
-`NotificationManager`와 기본 채널을 조합해서 외부 서비스로 로그를 보낼 수 있습니다.
+`NotificationManager`는 알림 라우팅 정책만 담당합니다. 실제 발송 채널은 선택 패키지로 분리되어, 앱이 켠 리소스만 설치하고 lazy import 할 수 있습니다.
 
-- `SentryChannel`
-- `SlackChannel`
-- `DiscordChannel`
-- `WebhookChannel`
+```ts
+import { Logger, LogLevel, NotificationManager } from "@kangjuhyup/rvlog";
 
-`SentryChannel`은 두 가지 전송 모드를 지원합니다.
+const notification = new NotificationManager()
+  .addLazyResource("slack", async () => {
+    const { SlackChannel } = await import("@kangjuhyup/rvlog-slack");
+    return new SlackChannel(process.env.SLACK_WEBHOOK_URL ?? "");
+  })
+  .addLazyResource("email", async () => {
+    const { EmailChannel, createNodemailerAdapter } = await import("@kangjuhyup/rvlog-email");
+    return new EmailChannel({
+      to: "ops@example.com",
+      transport: createNodemailerAdapter(mailer),
+    });
+  })
+  .addRoute({
+    resources: ["slack", "email"],
+    levels: [LogLevel.ERROR],
+    when: {
+      threshold: { count: 10, windowMs: 60_000 },
+      cooldownMs: 60_000,
+    },
+  });
 
-- `mode: 'event'`: `captureMessage` / `captureException` 기반
-- `mode: 'log'`: `enableLogs: true`와 함께 쓰는 `Sentry.logger.*` 기반
+Logger.configure({ notification });
+```
 
-추가로 아래 옵션으로 분리 라우팅도 지원합니다.
+채널 패키지:
 
-- `eventLevels`: Issue/Event로 수집할 레벨
-- `logLevels`: Sentry Logs로 수집할 레벨
+- `@kangjuhyup/rvlog-slack`
+- `@kangjuhyup/rvlog-discord`
+- `@kangjuhyup/rvlog-webhook`
+- `@kangjuhyup/rvlog-sentry`
+- `@kangjuhyup/rvlog-email`
+
+기존 `addRule({ channel, levels, cooldownMs })` API는 호환성을 위해 계속 사용할 수 있습니다.
 
 관련 패키지 문서에 실제 연동 예시가 정리돼 있습니다.
 

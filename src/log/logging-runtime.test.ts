@@ -53,6 +53,10 @@ describe('logging-runtime', () => {
     const notifySpy = vi.spyOn(Logger, 'notify').mockImplementation(() => {});
     const logger = new Logger('UserService');
     const error = new Error('boom');
+    error.stack = [
+      'Error: boom',
+      '    at UserService.create (/app/src/user.service.ts:12:34)',
+    ].join('\n');
 
     logAtLevel(logger, LogLevel.DEBUG, 'debug-message');
     notifyLoggedError('UserService', 'create', [{ id: 1 }], error, '1.00ms');
@@ -60,7 +64,7 @@ describe('logging-runtime', () => {
     expect(debugSpy).toHaveBeenCalledWith(expect.stringContaining('debug-message'));
     expect(notifySpy).toHaveBeenCalledWith(
       LogLevel.ERROR,
-      'create() failed (1.00ms) Error: boom',
+      'create() failed (1.00ms) Error: boom\nat UserService.create (/app/src/user.service.ts:12:34)',
       expect.objectContaining({
         className: 'UserService',
         methodName: 'create',

@@ -84,6 +84,88 @@ describe('NotificationManager', () => {
     expect(channelB.send).toHaveBeenCalledTimes(1);
   });
 
+  it('fans out a route to multiple named resources - route 하나가 여러 resource로 fan-out 된다', async () => {
+    const channelA = new MockChannel();
+    const channelB = new MockChannel();
+    const manager = new NotificationManager()
+      .addResource('slack', channelA)
+      .addResource('discord', channelB)
+      .addRoute({
+        resources: ['slack', 'discord'],
+        levels: [LogLevel.ERROR],
+      });
+
+    await manager.notify(LogLevel.ERROR, 'error', baseContext);
+
+    expect(channelA.send).toHaveBeenCalledTimes(1);
+    expect(channelB.send).toHaveBeenCalledTimes(1);
+  });
+
+  it('loads lazy resources only after route conditions pass - 조건 통과 전에는 lazy resource를 불러오지 않는다', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-04-10T00:00:00.000Z'));
+
+    const channel = new MockChannel();
+    const factory = vi.fn(async () => channel);
+    const manager = new NotificationManager()
+      .addLazyResource('slack', factory)
+      .addRoute({
+        resources: ['slack'],
+        levels: [LogLevel.ERROR],
+        when: {
+          threshold: { count: 3, windowMs: 60_000 },
+        },
+      });
+
+    await manager.notify(LogLevel.ERROR, 'error', baseContext);
+    await manager.notify(LogLevel.ERROR, 'error', baseContext);
+
+    expect(factory).not.toHaveBeenCalled();
+    expect(channel.send).not.toHaveBeenCalled();
+
+    await manager.notify(LogLevel.ERROR, 'error', baseContext);
+
+    expect(factory).toHaveBeenCalledTimes(1);
+    expect(channel.send).toHaveBeenCalledTimes(1);
+
+    vi.useRealTimers();
+  });
+
+  it('counts different fingerprints independently - fingerprint가 다르면 threshold 카운트도 분리된다', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-04-10T00:00:00.000Z'));
+
+    const channel = new MockChannel();
+    const manager = new NotificationManager()
+      .addResource('slack', channel)
+      .addRoute({
+        resources: ['slack'],
+        levels: [LogLevel.ERROR],
+        when: {
+          threshold: { count: 2, windowMs: 60_000 },
+        },
+      });
+
+    await manager.notify(LogLevel.ERROR, 'first', baseContext);
+    await manager.notify(LogLevel.ERROR, 'second', baseContext);
+
+    expect(channel.send).not.toHaveBeenCalled();
+
+    await manager.notify(LogLevel.ERROR, 'first', baseContext);
+
+    expect(channel.send).toHaveBeenCalledTimes(1);
+
+    vi.useRealTimers();
+  });
+
+  it('rejects routes without resources - resource 없는 route는 등록하지 않는다', () => {
+    const manager = new NotificationManager();
+
+    expect(() => manager.addRoute({ resources: [], levels: [LogLevel.ERROR] })).toThrow(
+      'NotificationRoute.resources must include at least one resource',
+    );
+  });
+
   it('prunes expired cooldown entries when the map grows large - 쿨다운 맵이 커지면 오래된 항목을 정리한다', async () => {
     // Given: cooldownMs 0으로 설정해 매 호출이 기록되도록 채널을 만든다.
     vi.useFakeTimers();

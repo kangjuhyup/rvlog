@@ -1,5 +1,10 @@
 import { LogLevel, LOG_LEVEL_PRIORITY } from './log-level';
-import { sanitizeLogValue, stringifyLogValue, type LogSerializeOptions } from './log-serializer';
+import {
+  sanitizeLogValue,
+  stringifyLogValue,
+  type LogSerializeOptions,
+  type SerializedError,
+} from './log-serializer';
 import { defaultTimestamp, resolveFormatter } from './logger.utils';
 import type { LogContext, LogFields, LogTags } from '../notification/notification-channel';
 import type { NotificationManager } from '../notification/notification-manager';
@@ -142,6 +147,9 @@ class LoggerRuntime {
     const timestamp = (this.options.timestamp ?? defaultTimestamp)();
     const runtimeContext = this.contextResolver?.();
     const sanitizedArgs = args.map((arg) => this.sanitize(arg));
+    const formattedMessage = level === LogLevel.ERROR
+      ? appendErrorStack(message, sanitizedArgs)
+      : message;
     const tags = this.mergeTags(this.options.defaultTags, runtimeContext?.tags, boundTags);
     const fields = this.mergeFields(
       this.options.defaultFields,
@@ -152,7 +160,7 @@ class LoggerRuntime {
       timestamp,
       level,
       context,
-      message,
+      message: formattedMessage,
       args: sanitizedArgs,
       requestId: runtimeContext?.requestId,
       tags,
@@ -217,6 +225,27 @@ class LoggerRuntime {
 
     this.notificationManager.notify(level, message, context).catch(() => {});
   }
+}
+
+function appendErrorStack(message: string, args: unknown[]): string {
+  const error = args.find(isSerializedError);
+
+  if (!error?.stack) {
+    return message;
+  }
+
+  return `${message}\n${error.stack}`;
+}
+
+function isSerializedError(value: unknown): value is SerializedError {
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
+
+  const candidate = value as Partial<SerializedError>;
+  return typeof candidate.name === 'string'
+    && typeof candidate.message === 'string'
+    && (candidate.stack === undefined || typeof candidate.stack === 'string');
 }
 
 const globalRuntime = new LoggerRuntime();

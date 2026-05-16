@@ -1,5 +1,6 @@
 import './logger.config';
 import { CreateUserDto } from './create-user.dto';
+import { runAlertRoutingExample } from './features/alert-routing';
 import { logBasicUserCreated } from './features/structured-metadata';
 import { UserService } from './user.service';
 
@@ -12,6 +13,7 @@ async function bootstrap() {
 
   const createdUser = await service.create(dto);
   logBasicUserCreated(createdUser);
+  await runAlertRoutingExample();
   service.healthCheck();
 }
 

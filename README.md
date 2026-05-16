@@ -8,7 +8,7 @@ Framework-agnostic TypeScript logging library with decorators, field masking, an
 - `withLogging()` for standalone functions and browser-friendly code
 - `@MaskLog` for masking sensitive fields like name, email, phone, and passwords
 - `@NoLog` to exclude hot paths or health checks
-- `NotificationManager` with Slack, Discord, Webhook, and Sentry channels
+- `NotificationManager` with route-based fan-out, lazy notification resources, cooldowns, and thresholds
 - `FileTransport` for Node.js file logging with rotation
 
 ## Install
@@ -24,12 +24,12 @@ pnpm add @kangjuhyup/rvlog reflect-metadata
 yarn add @kangjuhyup/rvlog reflect-metadata
 ```
 
-Optional integrations:
+Optional notification channel packages:
 
 ```bash
-npm install @sentry/browser
-pnpm add @sentry/browser
-yarn add @sentry/browser
+npm install @kangjuhyup/rvlog-slack @kangjuhyup/rvlog-discord @kangjuhyup/rvlog-webhook @kangjuhyup/rvlog-sentry @kangjuhyup/rvlog-email
+pnpm add @kangjuhyup/rvlog-slack @kangjuhyup/rvlog-discord @kangjuhyup/rvlog-webhook @kangjuhyup/rvlog-sentry @kangjuhyup/rvlog-email
+yarn add @kangjuhyup/rvlog-slack @kangjuhyup/rvlog-discord @kangjuhyup/rvlog-webhook @kangjuhyup/rvlog-sentry @kangjuhyup/rvlog-email
 ```
 
 Related packages:
@@ -204,22 +204,44 @@ The same serialization policy is shared by:
 
 ## Notifications
 
-You can forward logs with `NotificationManager` and built-in channels:
+`NotificationManager` owns the core routing policy. Actual delivery channels live in optional packages so apps only install and load the resources they enable.
 
-- `SentryChannel`
-- `SlackChannel`
-- `DiscordChannel`
-- `WebhookChannel`
+```ts
+import { Logger, LogLevel, NotificationManager } from '@kangjuhyup/rvlog';
 
-`SentryChannel` supports two delivery modes:
+const notification = new NotificationManager()
+  .addLazyResource('slack', async () => {
+    const { SlackChannel } = await import('@kangjuhyup/rvlog-slack');
+    return new SlackChannel(process.env.SLACK_WEBHOOK_URL ?? '');
+  })
+  .addLazyResource('email', async () => {
+    const { EmailChannel, createNodemailerAdapter } = await import('@kangjuhyup/rvlog-email');
+    return new EmailChannel({
+      to: 'ops@example.com',
+      transport: createNodemailerAdapter(mailer),
+    });
+  })
+  .addRoute({
+    resources: ['slack', 'email'],
+    levels: [LogLevel.ERROR],
+    when: {
+      threshold: { count: 10, windowMs: 60_000 },
+      cooldownMs: 60_000,
+    },
+  });
 
-- `mode: 'event'` for `captureMessage` / `captureException`
-- `mode: 'log'` for Sentry Logs via `Sentry.logger.*` with `enableLogs: true`
+Logger.configure({ notification });
+```
 
-It also supports split routing with:
+Channel packages:
 
-- `eventLevels` for issue/event collection
-- `logLevels` for Sentry Logs collection
+- `@kangjuhyup/rvlog-slack`
+- `@kangjuhyup/rvlog-discord`
+- `@kangjuhyup/rvlog-webhook`
+- `@kangjuhyup/rvlog-sentry`
+- `@kangjuhyup/rvlog-email`
+
+The legacy `addRule({ channel, levels, cooldownMs })` API remains available for existing code.
 
 See related package docs for integration patterns:
 
