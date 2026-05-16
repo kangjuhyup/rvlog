@@ -26,9 +26,9 @@ description: README, RELEASE, JSDoc, 예제 문서를 일관된 톤으로 정리
 
 ## Skills To Load
 
-- [project-architecture](C:\Users\jhkang\Documents\Workspace\rvlog\.skills\project-architecture\SKILL.md)
-- 필요 시 [package-publish](C:\Users\jhkang\Documents\Workspace\rvlog\.skills\package-publish\SKILL.md)
-- 필요 시 [release](C:\Users\jhkang\Documents\Workspace\rvlog\.skills\release\SKILL.md)
+- [project-architecture](../.skills/project-architecture/SKILL.md)
+- 필요 시 [package-publish](../.skills/package-publish/SKILL.md)
+- 필요 시 [release](../.skills/release/SKILL.md)
 
 ## Priorities
 
