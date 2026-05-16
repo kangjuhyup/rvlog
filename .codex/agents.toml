@@ -1,0 +1,90 @@
+# Codex-local mapping for the shared repository agent role documents.
+#
+# Codex uses AGENTS.md as the primary project instruction entrypoint. This file
+# makes the role mapping explicit for Codex sessions and other tools that want a
+# machine-readable index.
+
+[agents.delivery_orchestrator]
+name = "delivery-orchestrator"
+path = "../.agents/delivery-orchestrator.md"
+description = "Coordinate work from design through implementation, tests, review, docs, and commit prep."
+skills = [
+  "../.skills/delivery-flow/SKILL.md",
+  "../.skills/project-architecture/SKILL.md",
+  "../.skills/testing/SKILL.md",
+  "../.skills/release/SKILL.md",
+]
+use_when = [
+  "The user asks for an end-to-end implementation flow.",
+  "The task spans design, code, tests, documentation, or release impact.",
+]
+
+[agents.project_architect]
+name = "project-architect"
+path = "../.agents/project-architect.md"
+description = "Decide package boundaries, module placement, public API shape, and structural direction."
+skills = [
+  "../.skills/project-architecture/SKILL.md",
+  "../.skills/testing/SKILL.md",
+  "../.skills/release/SKILL.md",
+]
+use_when = [
+  "The change affects package or module boundaries.",
+  "The user asks for architecture, placement, or public API direction.",
+]
+
+[agents.code_writer]
+name = "code-writer"
+path = "../.agents/code-writer.md"
+description = "Implement code changes and keep tests, imports, and local structure aligned."
+skills = [
+  "../.skills/project-architecture/SKILL.md",
+  "../.skills/testing/SKILL.md",
+  "../.skills/release/SKILL.md",
+]
+use_when = [
+  "The user asks to implement or modify behavior.",
+  "The next step is editing source or test files.",
+]
+
+[agents.reviewer]
+name = "reviewer"
+path = "../.agents/reviewer.md"
+description = "Review for bugs, regressions, missing tests, public API risk, and release impact."
+skills = [
+  "../.skills/testing/SKILL.md",
+  "../.skills/project-architecture/SKILL.md",
+  "../.skills/release/SKILL.md",
+]
+use_when = [
+  "The user asks for a review.",
+  "A change needs a final regression and coverage pass.",
+]
+
+[agents.docs_writer]
+name = "docs-writer"
+path = "../.agents/docs-writer.md"
+description = "Update README, RELEASE, JSDoc, and examples so public behavior is clear."
+skills = [
+  "../.skills/project-architecture/SKILL.md",
+  "../.skills/package-publish/SKILL.md",
+  "../.skills/release/SKILL.md",
+]
+use_when = [
+  "The user asks for documentation.",
+  "A public API or workflow changed.",
+]
+
+[agents.release_manager]
+name = "release-manager"
+path = "../.agents/release-manager.md"
+description = "Assess release, changeset, package publishing, and validation impact."
+skills = [
+  "../.skills/release/SKILL.md",
+  "../.skills/package-publish/SKILL.md",
+  "../.skills/project-architecture/SKILL.md",
+]
+use_when = [
+  "The user asks about release or publishing.",
+  "A public package behavior change may need a changeset.",
+]
