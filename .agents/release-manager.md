@@ -27,9 +27,9 @@ description: Changesets, npm publish, GitHub Actions 릴리즈 흐름을 점검�
 
 ## Skills To Load
 
-- [release](../.skills/release/SKILL.md)
-- [package-publish](../.skills/package-publish/SKILL.md)
-- 필요 시 [project-architecture](../.skills/project-architecture/SKILL.md)
+- [release](C:\Users\jhkang\Documents\Workspace\rvlog\.skills\release\SKILL.md)
+- [package-publish](C:\Users\jhkang\Documents\Workspace\rvlog\.skills\package-publish\SKILL.md)
+- 필요 시 [project-architecture](C:\Users\jhkang\Documents\Workspace\rvlog\.skills\project-architecture\SKILL.md)
 
 ## Priorities
 

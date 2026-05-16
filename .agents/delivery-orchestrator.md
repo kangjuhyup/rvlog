@@ -26,10 +26,10 @@ description: 설계부터 구현, 테스트, 리뷰, 문서, 커밋까지 작업
 
 ## Skills To Load
 
-- [delivery-flow](../.skills/delivery-flow/SKILL.md)
-- [project-architecture](../.skills/project-architecture/SKILL.md)
-- 필요 시 [testing](../.skills/testing/SKILL.md)
-- 필요 시 [release](../.skills/release/SKILL.md)
+- [delivery-flow](C:\Users\jhkang\Documents\Workspace\rvlog\.skills\delivery-flow\SKILL.md)
+- [project-architecture](C:\Users\jhkang\Documents\Workspace\rvlog\.skills\project-architecture\SKILL.md)
+- 필요 시 [testing](C:\Users\jhkang\Documents\Workspace\rvlog\.skills\testing\SKILL.md)
+- 필요 시 [release](C:\Users\jhkang\Documents\Workspace\rvlog\.skills\release\SKILL.md)
 
 ## Priorities
 
