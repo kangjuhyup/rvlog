@@ -102,6 +102,19 @@ npm publish는 **Version PR이 머지된 뒤에** 실행됩니다.
    - `@kangjuhyup/rvlog-sentry`
    - `@kangjuhyup/rvlog-email`
 
+## GitHub Packages 연동
+
+Version PR 머지 후 npmjs publish가 성공하면 같은 버전을 GitHub Packages에도 추가로 publish합니다.
+
+- GitHub Packages registry: `https://npm.pkg.github.com`
+- 인증: GitHub Actions 기본 `GITHUB_TOKEN`
+- 권한: Release workflow의 `packages: write`
+- 대상 owner/scope: `@kangjuhyup`
+
+각 패키지의 `package.json`에는 `repository` 필드가 `kangjuhyup/rvlog`를 가리키고 있으므로, GitHub Packages에 publish된 패키지는 저장소의 Packages 영역과 연결됩니다.
+
+GitHub Packages publish는 npmjs publish 이후에만 실행됩니다. changeset이 없어 Version PR만 생성/갱신되는 실행에서는 GitHub Packages publish도 실행되지 않습니다.
+
 ## 한눈에 보는 요약
 
 릴리즈 자동화는 2단계입니다.
