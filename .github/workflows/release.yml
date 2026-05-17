@@ -60,7 +60,6 @@ jobs:
           NPM_CONFIG_PROVENANCE: true
 
       - name: Setup Node.js for GitHub Packages
-        if: steps.changesets.outputs.published == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: 24
@@ -68,7 +67,6 @@ jobs:
           scope: '@kangjuhyup'
 
       - name: Publish to GitHub Packages
-        if: steps.changesets.outputs.published == 'true'
         run: pnpm run release:github
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
