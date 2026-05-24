@@ -4,6 +4,7 @@
 
 ## Features
 
+- Request context propagation via Nest middleware before guards and filters
 - Global HTTP logging via Nest interceptor
 - Request body/query/params logging
 - Sensitive field masking through `rvlog`'s `@MaskLog` metadata
@@ -59,14 +60,15 @@ import { RvlogNestModule } from '@kangjuhyup/rvlog-nest';
 export class AppModule {}
 ```
 
-`RvlogNestModule.forRoot()` configures the core `rvlog` logger and registers the global HTTP interceptor in one place.
+`RvlogNestModule.forRoot()` configures the core `rvlog` logger, registers request context middleware, and registers the global HTTP interceptor in one place.
 
 ## Request Flow
 
-`rvlog-nest` creates or reuses a request id from `x-request-id` and propagates it into both HTTP logs and service logs produced by `@Logging`.
+`rvlog-nest` creates or reuses a request id from `x-request-id` in middleware, before guards and route handlers run. The same request id is propagated into middleware, guard, filter, HTTP, and service logs produced by `@Logging`.
 
 ```txt
 [INF] 2026:04:23 16:48:11 [req-123] HTTP :: POST /users called {"body":{"name":"강*협","email":"ab***@abc.com"}}
+[INF] 2026:04:23 16:48:11 [req-123] AuthGuard :: canActivate() called
 [INF] 2026:04:23 16:48:11 [req-123] UserService :: create() called {"name":"강*협","email":"ab***@abc.com"}
 [INF] 2026:04:23 16:48:11 [req-123] HTTP :: POST /users completed 201 (10.25ms)
 ```

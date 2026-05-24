@@ -4,6 +4,7 @@
 
 ## 주요 기능
 
+- Guard와 filter보다 먼저 실행되는 Nest middleware 기반 request context 전파
 - Nest interceptor 기반 전역 HTTP 로깅
 - request body, query, params 로깅
 - `rvlog`의 `@MaskLog` 메타데이터를 이용한 민감정보 마스킹
@@ -59,14 +60,15 @@ import { RvlogNestModule } from '@kangjuhyup/rvlog-nest';
 export class AppModule {}
 ```
 
-`RvlogNestModule.forRoot()`는 한 곳에서 코어 `rvlog` 설정과 전역 HTTP 인터셉터 등록을 함께 처리합니다.
+`RvlogNestModule.forRoot()`는 한 곳에서 코어 `rvlog` 설정, request context middleware 등록, 전역 HTTP 인터셉터 등록을 함께 처리합니다.
 
 ## 요청 흐름
 
-`rvlog-nest`는 `x-request-id`를 재사용하거나 새로 생성해서 HTTP 로그와 `@Logging` 서비스 로그에 함께 전파합니다.
+`rvlog-nest`는 middleware 단계에서 `x-request-id`를 재사용하거나 새로 생성합니다. 이 requestId는 middleware, guard, filter, HTTP 로그와 `@Logging` 서비스 로그에 함께 전파됩니다.
 
 ```txt
 [INF] 2026:04:23 16:48:11 [req-123] HTTP :: POST /users called {"body":{"name":"강*협","email":"ab***@abc.com"}}
+[INF] 2026:04:23 16:48:11 [req-123] AuthGuard :: canActivate() called
 [INF] 2026:04:23 16:48:11 [req-123] UserService :: create() called {"name":"강*협","email":"ab***@abc.com"}
 [INF] 2026:04:23 16:48:11 [req-123] HTTP :: POST /users completed 201 (10.25ms)
 ```

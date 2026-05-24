@@ -1,11 +1,14 @@
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { describe, expect, it, vi, afterEach } from 'vitest';
 import { Logger, LogLevel } from '@kangjuhyup/rvlog';
+import { RvlogRequestContextMiddleware } from './rvlog-request-context.middleware';
+import {
+  RvlogHttpInterceptor,
+} from './rvlog-http.interceptor';
 import {
   RVLOG_HTTP_LOGGER_SYSTEM,
   RVLOG_HTTP_LOGGING_OPTIONS,
-  RvlogHttpInterceptor,
-} from './rvlog-http.interceptor';
+} from './rvlog-http.options';
 import { RvlogNestModule } from './rvlog-nest.module';
 
 describe('RvlogNestModule', () => {
@@ -39,6 +42,7 @@ describe('RvlogNestModule', () => {
           provide: APP_INTERCEPTOR,
           useClass: RvlogHttpInterceptor,
         },
+        RvlogRequestContextMiddleware,
       ]),
     );
   });
@@ -85,5 +89,16 @@ describe('RvlogNestModule', () => {
         },
       ]),
     );
+  });
+
+  it('registers request context middleware before route handlers - route handler 전에 request context middleware를 등록한다', () => {
+    const forRoutes = vi.fn();
+    const apply = vi.fn(() => ({ forRoutes }));
+    const module = new RvlogNestModule();
+
+    module.configure({ apply } as never);
+
+    expect(apply).toHaveBeenCalledWith(RvlogRequestContextMiddleware);
+    expect(forRoutes).toHaveBeenCalledWith('*');
   });
 });
