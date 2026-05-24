@@ -3,7 +3,7 @@ import { RouteParamtypes } from '@nestjs/common/enums/route-paramtypes.enum';
 import type { ExecutionContext } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import { LogLevel, maskObject } from '@kangjuhyup/rvlog';
-import type { RvlogHttpLoggingOptions } from './rvlog-http.interceptor';
+import type { RvlogHttpLoggingOptions } from './rvlog-http.options';
 
 type HttpLikeRequest = {
   method?: string;

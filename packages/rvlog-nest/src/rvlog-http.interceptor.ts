@@ -6,15 +6,18 @@ import {
   type NestInterceptor,
   Optional,
 } from "@nestjs/common";
-import { AsyncLocalStorage } from "node:async_hooks";
 import { Observable } from "rxjs";
 import {
   LogLevel,
   Logger,
   LoggerSystem,
   logAtLevel,
-  type LoggerContextValue,
 } from "@kangjuhyup/rvlog";
+import {
+  RVLOG_HTTP_LOGGER_SYSTEM,
+  RVLOG_HTTP_LOGGING_OPTIONS,
+  type RvlogHttpLoggingOptions,
+} from './rvlog-http.options';
 import {
   buildDuration,
   buildRequestPayload,
@@ -24,23 +27,17 @@ import {
   resolveRequestId,
   shouldExcludePath,
 } from "./rvlog-http.utils";
+import {
+  getRvlogRequestContext,
+  installRvlogRequestContextResolver,
+  runWithRvlogRequestContext,
+} from './rvlog-request-context';
 
-export interface RvlogHttpLoggingOptions {
-  context?: string;
-  logBody?: boolean;
-  logQuery?: boolean;
-  logParams?: boolean;
-  logHeaders?: boolean;
-  logResponseBody?: boolean;
-  level?: LogLevel;
-  excludePaths?: string[];
-  maskHeaders?: string[];
-  requestIdHeader?: string;
-  setResponseHeader?: boolean;
-}
-
-export const RVLOG_HTTP_LOGGING_OPTIONS = Symbol("RVLOG_HTTP_LOGGING_OPTIONS");
-export const RVLOG_HTTP_LOGGER_SYSTEM = Symbol("RVLOG_HTTP_LOGGER_SYSTEM");
+export {
+  RVLOG_HTTP_LOGGER_SYSTEM,
+  RVLOG_HTTP_LOGGING_OPTIONS,
+  type RvlogHttpLoggingOptions,
+} from './rvlog-http.options';
 
 type HttpLikeRequest = {
   method?: string;
@@ -56,7 +53,6 @@ type HttpLikeResponse = {
   statusCode?: number;
   setHeader?: (name: string, value: string) => void;
 };
-const requestContextStorage = new AsyncLocalStorage<LoggerContextValue>();
 
 @Injectable()
 export class RvlogHttpInterceptor implements NestInterceptor {
@@ -71,13 +67,7 @@ export class RvlogHttpInterceptor implements NestInterceptor {
     private readonly loggerSystem?: LoggerSystem | null,
   ) {
     this.options = resolveHttpLoggingOptions(options);
-    const runtime = this.loggerSystem ?? Logger;
-    const previousResolver = runtime.getContextResolver();
-
-    runtime.setContextResolver(() => ({
-      ...previousResolver?.(),
-      ...requestContextStorage.getStore(),
-    }));
+    installRvlogRequestContextResolver(this.loggerSystem ?? Logger);
   }
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
@@ -111,14 +101,26 @@ export class RvlogHttpInterceptor implements NestInterceptor {
       Object.keys(requestPayload).length > 0
         ? ` ${runtime.stringify(requestPayload)}`
         : "";
-    const requestId = resolveRequestId(request, this.options.requestIdHeader);
+    const existingContext = getRvlogRequestContext();
+    const requestId =
+      existingContext?.requestId ??
+      resolveRequestId(request, this.options.requestIdHeader);
 
     if (this.options.setResponseHeader) {
       response.setHeader?.(this.options.requestIdHeader, requestId);
     }
 
     return new Observable((subscriber) => {
-      requestContextStorage.run({ requestId }, () => {
+      const run = (callback: () => void) => {
+        if (existingContext?.requestId) {
+          callback();
+          return;
+        }
+
+        runWithRvlogRequestContext({ requestId }, callback);
+      };
+
+      run(() => {
         logAtLevel(logger, this.options.level, `${method} ${path} called${requestSuffix}`);
 
         const subscription = next.handle().subscribe({
