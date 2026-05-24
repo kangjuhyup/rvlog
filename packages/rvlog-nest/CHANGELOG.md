@@ -1,5 +1,11 @@
 # rvlog-nest
 
+## 1.0.1
+
+### Patch Changes
+
+- a6dd493: Move requestId context propagation into Nest middleware so middleware, guards, filters, HTTP logs, and service logs share the same requestId.
+
 ## 1.0.0
 
 ### Patch Changes
