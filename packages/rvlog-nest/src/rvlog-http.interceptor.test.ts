@@ -1,4 +1,5 @@
 import 'reflect-metadata';
+import { HttpException } from '@nestjs/common';
 import { ROUTE_ARGS_METADATA } from '@nestjs/common/constants';
 import { RouteParamtypes } from '@nestjs/common/enums/route-paramtypes.enum';
 import { describe, expect, it, vi, afterEach } from 'vitest';
@@ -191,6 +192,7 @@ describe('RvlogHttpInterceptor', () => {
   });
 
   it('keeps the same requestId on error logs and notifies through rvlog - 에러 로그도 같은 requestId로 남기고 notify를 호출한다', async () => {
+    vi.spyOn(console, 'info').mockImplementation(() => {});
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     const notifySpy = vi.spyOn(Logger, 'notify').mockImplementation(() => {});
     Logger.configure({ pretty: true });
@@ -209,14 +211,45 @@ describe('RvlogHttpInterceptor', () => {
     ).rejects.toThrow('boom');
 
     expect(errorSpy).toHaveBeenCalledTimes(1);
-    expect(errorSpy.mock.calls[0]?.[0]).toContain('[req-123] HTTP :: POST /users failed');
+    expect(errorSpy.mock.calls[0]?.[0]).toContain('[req-123] HTTP :: POST /users failed 500');
+    expect(errorSpy.mock.calls[0]?.[0]).not.toContain('boom');
     expect(notifySpy).toHaveBeenCalledWith(
       LogLevel.ERROR,
-      expect.stringContaining('POST /users failed'),
+      expect.stringContaining('POST /users failed 500'),
       expect.objectContaining({
         className: 'HTTP',
+        args: [],
       }),
     );
+    expect(notifySpy.mock.calls[0]?.[2]).not.toHaveProperty('error');
+  });
+
+  it('logs a standalone HttpException at WARN without exception payload - middleware 없이도 4XX는 payload 없이 WARN으로 기록한다', async () => {
+    vi.spyOn(console, 'info').mockImplementation(() => {});
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    Logger.configure({ pretty: true });
+
+    const interceptor = new RvlogHttpInterceptor({
+      context: 'HTTP',
+      requestIdHeader: 'x-request-id',
+    });
+    const context = createHttpContext({ ok: false });
+
+    await expect(
+      lastValueFrom(
+        interceptor.intercept(context as never, {
+          handle: () => throwError(() => new HttpException('exception-secret', 400)),
+        }),
+      ),
+    ).rejects.toThrow('exception-secret');
+
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+    expect(warnSpy.mock.calls[0]?.[0]).toContain(
+      '[req-123] HTTP :: POST /users failed 400',
+    );
+    expect(warnSpy.mock.calls[0]?.[0]).not.toContain('exception-secret');
+    expect(errorSpy).not.toHaveBeenCalled();
   });
 
   it('truncates long request and response payloads using core serialize options - HTTP 로그도 코어 serialize 옵션으로 길이를 제한한다', async () => {
@@ -400,9 +433,10 @@ describe('RvlogHttpInterceptor', () => {
       LogLevel.ERROR,
       expect.stringContaining('failed 500'),
       expect.objectContaining({
-        error: expect.objectContaining({ message: 'boom' }),
+        args: [],
       }),
     );
+    expect(notifySpy.mock.calls[0]?.[2]).not.toHaveProperty('error');
   });
 
   it('does not append response payload when response body logging is disabled - 응답 바디 로깅이 꺼져 있으면 완료 로그에 payload를 붙이지 않는다', async () => {

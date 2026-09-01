@@ -44,6 +44,16 @@ export function shouldExcludePath(path: string, excludePaths: string[]): boolean
   return excludePaths.some((excluded) => path === excluded || path.startsWith(`${excluded}/`));
 }
 
+export function resolveHttpRequestPath(
+  originalUrl?: string,
+  url?: string,
+): string {
+  const path = originalUrl ?? url ?? '';
+  const suffixIndex = path.search(/[?#]/);
+
+  return suffixIndex >= 0 ? path.slice(0, suffixIndex) : path;
+}
+
 export function buildDuration(startTime: number): string {
   return `${(performance.now() - startTime).toFixed(2)}ms`;
 }

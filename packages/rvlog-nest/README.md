@@ -5,7 +5,8 @@
 ## Features
 
 - Request context propagation via Nest middleware before guards and filters
-- Global HTTP logging via Nest interceptor
+- Final response status logging across guards, pipes, controllers, and exception filters
+- Global HTTP call and successful completion logging via Nest interceptor
 - Request body/query/params logging
 - Sensitive field masking through `rvlog`'s `@MaskLog` metadata
 - Plain-object masking support for NestJS `@Body()` payloads
@@ -13,6 +14,7 @@
 - Duration and status code logging
 - Shared payload truncation using core `rvlog` serialization rules
 - Path exclusion for health checks or noisy routes
+- Payload-free WARN/ERROR terminal logs for failed requests
 
 ## Install
 
@@ -60,11 +62,13 @@ import { RvlogNestModule } from '@kangjuhyup/rvlog-nest';
 export class AppModule {}
 ```
 
-`RvlogNestModule.forRoot()` configures the core `rvlog` logger, registers request context middleware, and registers the global HTTP interceptor in one place.
+`RvlogNestModule.forRoot()` configures the core `rvlog` logger, registers request context and final-response middleware, and registers the global HTTP interceptor in one place.
 
 ## Request Flow
 
 `rvlog-nest` creates or reuses a request id from `x-request-id` in middleware, before guards and route handlers run. The same request id is propagated into middleware, guard, filter, HTTP, and service logs produced by `@Logging`.
+
+The middleware also observes the response `finish` boundary. This records the status written after guards, pipes, controllers, and exception filters have run, including a 401/403 response that never enters the HTTP interceptor.
 
 ```txt
 [INF] 2026:04:23 16:48:11 [req-123] HTTP :: POST /users called {"body":{"name":"강*협","email":"ab***@abc.com"}}
@@ -72,6 +76,21 @@ export class AppModule {}
 [INF] 2026:04:23 16:48:11 [req-123] UserService :: create() called {"name":"강*협","email":"ab***@abc.com"}
 [INF] 2026:04:23 16:48:11 [req-123] HTTP :: POST /users completed 201 (10.25ms)
 ```
+
+Terminal HTTP log levels are determined by the final response status:
+
+- 2XX/3XX: the configured HTTP `level`
+- 4XX: `WARN`
+- 5XX: `ERROR`
+
+```txt
+[WRN] 2026:04:23 16:48:11 [req-401] HTTP :: POST /votes failed 401 (2.15ms)
+[ERR] 2026:04:23 16:48:11 [req-500] HTTP :: POST /votes failed 500 (8.40ms)
+```
+
+Each request produces at most one terminal HTTP log. A failed terminal log contains only the method, normalized path, final status, and duration. URL query strings, request/response payloads, headers, tokens, exception messages, and exception stacks are not included. Existing payload options still apply to request call logs and successful completion logs for backward compatibility.
+
+`excludePaths` suppresses both call and terminal HTTP logs. Request context propagation and the configured request-id response header remain active for excluded paths.
 
 ## HTTP Options
 
