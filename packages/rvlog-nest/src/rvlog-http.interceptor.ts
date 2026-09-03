@@ -24,6 +24,7 @@ import {
   buildResponsePayload,
   getHandlerParameterTypes,
   resolveHttpLoggingOptions,
+  resolveHttpRequestPath,
   resolveRequestId,
   shouldExcludePath,
 } from "./rvlog-http.utils";
@@ -32,6 +33,12 @@ import {
   installRvlogRequestContextResolver,
   runWithRvlogRequestContext,
 } from './rvlog-request-context';
+import {
+  captureHttpResponsePayload,
+  enterHttpInterceptor,
+  logHttpFailure,
+  resolveHttpFailureStatus,
+} from './rvlog-http.lifecycle';
 
 export {
   RVLOG_HTTP_LOGGER_SYSTEM,
@@ -78,7 +85,7 @@ export class RvlogHttpInterceptor implements NestInterceptor {
     const http = context.switchToHttp();
     const request = http.getRequest<HttpLikeRequest>();
     const response = http.getResponse<HttpLikeResponse>();
-    const path = request.originalUrl ?? request.url ?? "";
+    const path = resolveHttpRequestPath(request.originalUrl, request.url);
 
     if (shouldExcludePath(path, this.options.excludePaths)) {
       return next.handle();
@@ -110,6 +117,8 @@ export class RvlogHttpInterceptor implements NestInterceptor {
       response.setHeader?.(this.options.requestIdHeader, requestId);
     }
 
+    const observesFinalResponse = enterHttpInterceptor(request);
+
     return new Observable((subscriber) => {
       const run = (callback: () => void) => {
         if (existingContext?.requestId) {
@@ -125,12 +134,19 @@ export class RvlogHttpInterceptor implements NestInterceptor {
 
         const subscription = next.handle().subscribe({
           next: (responseBody) => {
-            const duration = buildDuration(startTime);
-            const statusCode = response.statusCode ?? 200;
             const responsePayload = buildResponsePayload(
               responseBody,
               this.options,
             );
+
+            if (observesFinalResponse) {
+              captureHttpResponsePayload(request, responsePayload);
+              subscriber.next(responseBody);
+              return;
+            }
+
+            const duration = buildDuration(startTime);
+            const statusCode = response.statusCode ?? 200;
 
             if (responsePayload) {
               logAtLevel(
@@ -149,27 +165,26 @@ export class RvlogHttpInterceptor implements NestInterceptor {
             subscriber.next(responseBody);
           },
           error: (error: unknown) => {
-            const normalizedError =
-              error instanceof Error ? error : new Error(String(error));
-            const duration = buildDuration(startTime);
-            const statusCode = response.statusCode ?? 500;
+            if (!observesFinalResponse) {
+              const statusCode = resolveHttpFailureStatus(
+                error,
+                response.statusCode,
+              );
 
-            logger.error(
-              `${method} ${path} failed ${statusCode} (${duration})`,
-              normalizedError,
-            );
-            runtime.notify(
-              LogLevel.ERROR,
-              `${method} ${path} failed ${statusCode} (${duration})`,
-              {
-                className: this.options.context,
-                methodName: method,
-                args: [requestPayload],
-                error: normalizedError,
-                duration,
-                timestamp: new Date(),
-              },
-            );
+              logHttpFailure({
+                level:
+                  statusCode >= 400 && statusCode < 500
+                    ? LogLevel.WARN
+                    : LogLevel.ERROR,
+                context: this.options.context,
+                method,
+                path,
+                statusCode,
+                duration: buildDuration(startTime),
+                loggerSystem: this.loggerSystem,
+              });
+            }
+
             subscriber.error(error);
           },
           complete: () => {

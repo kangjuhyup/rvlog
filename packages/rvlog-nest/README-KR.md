@@ -5,7 +5,8 @@
 ## 주요 기능
 
 - Guard와 filter보다 먼저 실행되는 Nest middleware 기반 request context 전파
-- Nest interceptor 기반 전역 HTTP 로깅
+- Guard, Pipe, Controller, Exception Filter를 모두 지난 최종 응답 status 로깅
+- Nest interceptor 기반 전역 HTTP 호출 및 정상 완료 로깅
 - request body, query, params 로깅
 - `rvlog`의 `@MaskLog` 메타데이터를 이용한 민감정보 마스킹
 - NestJS `@Body()` plain object payload 마스킹 지원
@@ -13,6 +14,7 @@
 - 상태 코드와 duration 로깅
 - 코어 `rvlog` 직렬화 규칙을 공유하는 payload 길이 제한
 - 헬스체크나 noisy endpoint 제외
+- 실패 요청에 대한 payload 없는 WARN/ERROR 최종 로그
 
 ## 설치
 
@@ -60,11 +62,13 @@ import { RvlogNestModule } from '@kangjuhyup/rvlog-nest';
 export class AppModule {}
 ```
 
-`RvlogNestModule.forRoot()`는 한 곳에서 코어 `rvlog` 설정, request context middleware 등록, 전역 HTTP 인터셉터 등록을 함께 처리합니다.
+`RvlogNestModule.forRoot()`는 한 곳에서 코어 `rvlog` 설정, request context 및 최종 응답 middleware 등록, 전역 HTTP 인터셉터 등록을 함께 처리합니다.
 
 ## 요청 흐름
 
 `rvlog-nest`는 middleware 단계에서 `x-request-id`를 재사용하거나 새로 생성합니다. 이 requestId는 middleware, guard, filter, HTTP 로그와 `@Logging` 서비스 로그에 함께 전파됩니다.
+
+middleware는 응답의 `finish` 경계도 관찰합니다. 따라서 Guard, Pipe, Controller, Exception Filter 처리가 끝난 뒤 기록된 최종 status를 사용하며, HTTP interceptor에 진입하지 못한 Guard 401/403도 기록합니다.
 
 ```txt
 [INF] 2026:04:23 16:48:11 [req-123] HTTP :: POST /users called {"body":{"name":"강*협","email":"ab***@abc.com"}}
@@ -72,6 +76,21 @@ export class AppModule {}
 [INF] 2026:04:23 16:48:11 [req-123] UserService :: create() called {"name":"강*협","email":"ab***@abc.com"}
 [INF] 2026:04:23 16:48:11 [req-123] HTTP :: POST /users completed 201 (10.25ms)
 ```
+
+최종 HTTP 로그 레벨은 실제 응답 status로 결정합니다.
+
+- 2XX/3XX: 설정된 HTTP `level`
+- 4XX: `WARN`
+- 5XX: `ERROR`
+
+```txt
+[WRN] 2026:04:23 16:48:11 [req-401] HTTP :: POST /votes failed 401 (2.15ms)
+[ERR] 2026:04:23 16:48:11 [req-500] HTTP :: POST /votes failed 500 (8.40ms)
+```
+
+요청 하나당 최종 HTTP 로그는 최대 한 번만 기록합니다. 실패 최종 로그에는 method, query string을 제거한 path, 최종 status, duration만 포함합니다. URL query, 요청/응답 payload, header, token, 예외 메시지와 stack은 포함하지 않습니다. 하위 호환을 위해 기존 payload 옵션은 요청 호출 로그와 정상 완료 로그에 계속 적용됩니다.
+
+`excludePaths`는 호출 로그와 최종 HTTP 로그를 모두 제외합니다. 제외 경로에서도 request context 전파와 설정된 request-id 응답 header는 유지됩니다.
 
 ## HTTP 옵션
 

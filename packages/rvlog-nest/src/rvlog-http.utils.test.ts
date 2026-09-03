@@ -17,6 +17,7 @@ import {
   normalizeHeaders,
   parseJsonBody,
   resolveHttpLoggingOptions,
+  resolveHttpRequestPath,
   resolveRequestId,
   shouldExcludePath,
 } from './rvlog-http.utils';
@@ -66,6 +67,8 @@ describe('rvlog http utils', () => {
     });
     expect(resolveRequestId({ headers: { 'x-request-id': 'req-1' } }, 'x-request-id')).toBe('req-1');
     expect(resolveRequestId({ headers: {} }, 'x-request-id')).toMatch(/^[0-9a-f-]{36}$/i);
+    expect(resolveHttpRequestPath('/votes?access_token=secret', '/fallback')).toBe('/votes');
+    expect(resolveHttpRequestPath(undefined, '/fallback#fragment')).toBe('/fallback');
     expect(defaultMaskedHeaders()).toContain('authorization');
     expect(resolveHttpLoggingOptions({ context: 'HTTP' })).toEqual(
       expect.objectContaining({
