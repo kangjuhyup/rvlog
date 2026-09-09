@@ -99,6 +99,50 @@ class BillingService {
 }
 ```
 
+## Structured Events
+
+Use `event(name, metadata, level?)` when downstream systems need a stable event
+name and typed fields instead of a hand-built `key=value` message.
+
+```ts
+import { Logger, LogLevel } from '@kangjuhyup/rvlog';
+
+interface AuthorizationDecisionMetadata {
+  action: 'vote.read' | 'vote.write';
+  allowed: boolean;
+  resourceId: string;
+}
+
+const logger = new Logger('VoteAuthorization');
+
+logger.event<AuthorizationDecisionMetadata>(
+  'authorization.decision',
+  { action: 'vote.read', allowed: false, resourceId: 'vote-42' },
+  LogLevel.WARN,
+);
+```
+
+Transports receive `eventName` and the sanitized metadata in `fields`. Existing
+`debug/info/warn/error(message, ...args)` calls remain unchanged.
+
+Keys containing `authorization`, `cookie`, `password`, `token`, `secret`,
+`apiKey`, or `privateKey` are fully masked without regard to case or nesting.
+This applies recursively to objects and arrays as well as HTTP payloads.
+
+For tests, use an isolated system and `InMemoryLogTransport` instead of spying
+on `Logger.prototype`:
+
+```ts
+import { createLoggerSystem, InMemoryLogTransport } from '@kangjuhyup/rvlog';
+
+const sink = new InMemoryLogTransport();
+const system = createLoggerSystem({ console: false, transports: [sink] });
+const logger = system.createLogger('VoteAuthorization');
+
+logger.event('authorization.decision', { allowed: true });
+expect(sink.records[0]?.eventName).toBe('authorization.decision');
+```
+
 ## Pretty Output
 
 Use `pretty: true` for the built-in compact console format, or pass an object when you only want to adjust a few parts without writing a full custom formatter.
@@ -279,7 +323,7 @@ import {
   LogLevel,
   Logger,
   withLogging,
-} from 'rvlog';
+} from '@kangjuhyup/rvlog';
 
 const system = createLoggerSystem({
   minLevel: LogLevel.INFO,

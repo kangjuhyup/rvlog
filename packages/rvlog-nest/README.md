@@ -10,7 +10,9 @@
 - Request body/query/params logging
 - Sensitive field masking through `rvlog`'s `@MaskLog` metadata
 - Plain-object masking support for NestJS `@Body()` payloads
-- Shared `requestId` propagation across HTTP and service logs
+- Shared `requestId` and `traceId` propagation across HTTP and service logs
+- Tenant/principal enrichment for HTTP guards and worker jobs
+- Injectable context-bound logger providers for services and tests
 - Duration and status code logging
 - Shared payload truncation using core `rvlog` serialization rules
 - Path exclusion for health checks or noisy routes
@@ -66,7 +68,10 @@ export class AppModule {}
 
 ## Request Flow
 
-`rvlog-nest` creates or reuses a request id from `x-request-id` in middleware, before guards and route handlers run. The same request id is propagated into middleware, guard, filter, HTTP, and service logs produced by `@Logging`.
+`rvlog-nest` creates or reuses a request id from `x-request-id` and a trace id
+from `x-trace-id` or W3C `traceparent` in middleware, before guards and route
+handlers run. Both values are propagated into middleware, guard, filter, HTTP,
+and service logs produced by `@Logging`.
 
 The middleware also observes the response `finish` boundary. This records the status written after guards, pipes, controllers, and exception filters have run, including a 401/403 response that never enters the HTTP interceptor.
 
@@ -106,9 +111,81 @@ RvlogNestModule.forRoot({
     logResponseBody: false,
     excludePaths: ['/health'],
     requestIdHeader: 'x-request-id',
+    traceIdHeader: 'x-trace-id',
     setResponseHeader: true,
+    contextEnricher: (request) => {
+      const tenantId = request.headers?.['x-tenant-id'];
+      return typeof tenantId === 'string' ? { tenantId } : undefined;
+    },
   },
 })
+```
+
+## Injectable Structured Logger and Authorization Audit
+
+Register a context-bound logger with a service-owned token. The service depends
+on `StructuredLoggerLike`, so tests can replace the provider or configure an
+`InMemoryLogTransport` without spying on global prototypes.
+
+```ts
+import { Inject, Injectable, Module } from '@nestjs/common';
+import { LogLevel, type StructuredLoggerLike } from '@kangjuhyup/rvlog';
+import {
+  createRvlogLoggerProvider,
+  enrichRvlogContext,
+} from '@kangjuhyup/rvlog-nest';
+
+const VOTE_AUDIT_LOGGER = Symbol('VOTE_AUDIT_LOGGER');
+
+@Injectable()
+class VoteAuthorizationAudit {
+  constructor(
+    @Inject(VOTE_AUDIT_LOGGER)
+    private readonly logger: StructuredLoggerLike,
+  ) {}
+
+  recordDecision(userPrincipalId: string, tenantId: string, allowed: boolean) {
+    enrichRvlogContext({ userPrincipalId, tenantId });
+    this.logger.event(
+      'authorization.decision',
+      { action: 'vote.read', resourceType: 'vote', allowed },
+      allowed ? LogLevel.INFO : LogLevel.WARN,
+    );
+  }
+}
+
+@Module({
+  providers: [
+    createRvlogLoggerProvider(VOTE_AUDIT_LOGGER, 'VoteAuthorization'),
+    VoteAuthorizationAudit,
+  ],
+})
+class VoteModule {}
+```
+
+Do not place authorization headers, cookies, credentials, passwords, or tokens
+in event metadata. Sensitive key families are recursively masked as a defense
+in depth measure, but identifiers and authorization outcomes are preferable for
+audit events.
+
+For a worker, establish the same context around each job:
+
+```ts
+import {
+  enrichRvlogContext,
+  runWithRvlogContext,
+} from '@kangjuhyup/rvlog-nest';
+
+await runWithRvlogContext(
+  { requestId: job.id, traceId: job.traceId },
+  async () => {
+    enrichRvlogContext({
+      tenantId: job.tenantId,
+      userPrincipalId: job.requestedBy,
+    });
+    logger.event('vote.count.completed', { voteId: job.voteId });
+  },
+);
 ```
 
 ## Payload Truncation
@@ -135,8 +212,8 @@ RvlogNestModule.forRoot({
 can also inject an isolated `LoggerSystem`.
 
 ```ts
-import { createLoggerSystem, LogLevel } from 'rvlog';
-import { RvlogNestModule } from 'rvlog-nest';
+import { createLoggerSystem, LogLevel } from '@kangjuhyup/rvlog';
+import { RvlogNestModule } from '@kangjuhyup/rvlog-nest';
 
 const system = createLoggerSystem({
   minLevel: LogLevel.INFO,

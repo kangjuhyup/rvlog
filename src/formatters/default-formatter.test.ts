@@ -29,4 +29,18 @@ describe('defaultLogFormatter', () => {
       }),
     ).toBe('2026:04:10 12:34:56 [req-123] [HTTP] INFO POST /users called');
   });
+
+  it('renders traceId with requestId when present', () => {
+    expect(
+      defaultLogFormatter({
+        timestamp: '2026-09-09 10:00:00',
+        level: LogLevel.INFO,
+        context: 'VoteService',
+        message: 'authorization.decision',
+        args: [],
+        requestId: 'req-1',
+        traceId: 'trace-1',
+      }),
+    ).toContain('[req-1] [trace:trace-1] [VoteService]');
+  });
 });

@@ -10,7 +10,9 @@
 - request body, query, params 로깅
 - `rvlog`의 `@MaskLog` 메타데이터를 이용한 민감정보 마스킹
 - NestJS `@Body()` plain object payload 마스킹 지원
-- HTTP 로그와 서비스 로그 사이 `requestId` 전파
+- HTTP 로그와 서비스 로그 사이 `requestId`, `traceId` 전파
+- HTTP guard와 worker job을 위한 tenant/principal enrichment
+- 서비스와 테스트에서 사용하는 context-bound logger provider
 - 상태 코드와 duration 로깅
 - 코어 `rvlog` 직렬화 규칙을 공유하는 payload 길이 제한
 - 헬스체크나 noisy endpoint 제외
@@ -66,7 +68,9 @@ export class AppModule {}
 
 ## 요청 흐름
 
-`rvlog-nest`는 middleware 단계에서 `x-request-id`를 재사용하거나 새로 생성합니다. 이 requestId는 middleware, guard, filter, HTTP 로그와 `@Logging` 서비스 로그에 함께 전파됩니다.
+`rvlog-nest`는 middleware 단계에서 `x-request-id`를 재사용하거나 새로 생성하고,
+`x-trace-id` 또는 W3C `traceparent`에서 traceId를 가져옵니다. 두 값은 middleware,
+guard, filter, HTTP 로그와 `@Logging` 서비스 로그에 함께 전파됩니다.
 
 middleware는 응답의 `finish` 경계도 관찰합니다. 따라서 Guard, Pipe, Controller, Exception Filter 처리가 끝난 뒤 기록된 최종 status를 사용하며, HTTP interceptor에 진입하지 못한 Guard 401/403도 기록합니다.
 
@@ -106,9 +110,80 @@ RvlogNestModule.forRoot({
     logResponseBody: false,
     excludePaths: ['/health'],
     requestIdHeader: 'x-request-id',
+    traceIdHeader: 'x-trace-id',
     setResponseHeader: true,
+    contextEnricher: (request) => {
+      const tenantId = request.headers?.['x-tenant-id'];
+      return typeof tenantId === 'string' ? { tenantId } : undefined;
+    },
   },
 })
+```
+
+## 주입형 구조화 logger와 권한 감사 로그
+
+서비스가 소유한 token으로 context-bound logger를 등록할 수 있습니다. 서비스는
+`StructuredLoggerLike`에만 의존하므로 테스트에서 provider를 교체하거나
+`InMemoryLogTransport`를 사용하며 전역 prototype spy를 피할 수 있습니다.
+
+```ts
+import { Inject, Injectable, Module } from '@nestjs/common';
+import { LogLevel, type StructuredLoggerLike } from '@kangjuhyup/rvlog';
+import {
+  createRvlogLoggerProvider,
+  enrichRvlogContext,
+} from '@kangjuhyup/rvlog-nest';
+
+const VOTE_AUDIT_LOGGER = Symbol('VOTE_AUDIT_LOGGER');
+
+@Injectable()
+class VoteAuthorizationAudit {
+  constructor(
+    @Inject(VOTE_AUDIT_LOGGER)
+    private readonly logger: StructuredLoggerLike,
+  ) {}
+
+  recordDecision(userPrincipalId: string, tenantId: string, allowed: boolean) {
+    enrichRvlogContext({ userPrincipalId, tenantId });
+    this.logger.event(
+      'authorization.decision',
+      { action: 'vote.read', resourceType: 'vote', allowed },
+      allowed ? LogLevel.INFO : LogLevel.WARN,
+    );
+  }
+}
+
+@Module({
+  providers: [
+    createRvlogLoggerProvider(VOTE_AUDIT_LOGGER, 'VoteAuthorization'),
+    VoteAuthorizationAudit,
+  ],
+})
+class VoteModule {}
+```
+
+event metadata에 authorization header, cookie, credential, password, token을 넣지
+마세요. 민감 키 재귀 마스킹은 방어 계층이며, 감사 이벤트에는 식별자와 권한 판정
+결과만 기록하는 편이 안전합니다.
+
+worker에서는 job마다 같은 컨텍스트를 설정합니다.
+
+```ts
+import {
+  enrichRvlogContext,
+  runWithRvlogContext,
+} from '@kangjuhyup/rvlog-nest';
+
+await runWithRvlogContext(
+  { requestId: job.id, traceId: job.traceId },
+  async () => {
+    enrichRvlogContext({
+      tenantId: job.tenantId,
+      userPrincipalId: job.requestedBy,
+    });
+    logger.event('vote.count.completed', { voteId: job.voteId });
+  },
+);
 ```
 
 ## Payload 길이 제한
@@ -135,8 +210,8 @@ RvlogNestModule.forRoot({
 격리된 `LoggerSystem`을 주입해서 사용할 수도 있습니다.
 
 ```ts
-import { createLoggerSystem, LogLevel } from 'rvlog';
-import { RvlogNestModule } from 'rvlog-nest';
+import { createLoggerSystem, LogLevel } from '@kangjuhyup/rvlog';
+import { RvlogNestModule } from '@kangjuhyup/rvlog-nest';
 
 const system = createLoggerSystem({
   minLevel: LogLevel.INFO,

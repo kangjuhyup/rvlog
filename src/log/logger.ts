@@ -9,6 +9,10 @@ import { defaultTimestamp, resolveFormatter } from './logger.utils';
 import type { LogContext, LogFields, LogTags } from '../notification/notification-channel';
 import type { NotificationManager } from '../notification/notification-manager';
 import type { PrettyLogFormatterOptions } from '../formatters/pretty-formatter';
+import { maskObject } from '../masker/masker';
+
+/** Structured metadata attached to a named log event. */
+export type LogMetadata = object;
 
 /** A normalized log entry passed through formatters and transports. */
 export interface LogRecord {
@@ -17,7 +21,11 @@ export interface LogRecord {
   context: string;
   message: string;
   args: unknown[];
+  eventName?: string;
   requestId?: string;
+  traceId?: string;
+  tenantId?: string;
+  userPrincipalId?: string;
   tags?: LogTags;
   fields?: LogFields;
 }
@@ -28,6 +36,9 @@ export type LogFormatter = (record: LogRecord) => string;
 /** Context values resolved at log time, such as request IDs. */
 export interface LoggerContextValue {
   requestId?: string;
+  traceId?: string;
+  tenantId?: string;
+  userPrincipalId?: string;
   tags?: LogTags;
   fields?: LogFields;
 }
@@ -46,6 +57,15 @@ export interface LoggerLike {
   error(message: string, ...args: unknown[]): void;
 }
 
+/** Logger contract for named events with type-checked metadata. */
+export interface StructuredLoggerLike extends LoggerLike {
+  event<TMetadata extends LogMetadata>(
+    eventName: string,
+    metadata?: TMetadata,
+    level?: LogLevel,
+  ): void;
+}
+
 /** Global logger configuration shared by all `Logger` instances. */
 export interface LoggerOptions {
   /** Minimum level that will be emitted. Defaults to `DEBUG`. */
@@ -58,6 +78,8 @@ export interface LoggerOptions {
   formatter?: LogFormatter;
   /** Optional transports that receive each emitted record. */
   transports?: LogTransport[];
+  /** Whether logs are written to the process console. Defaults to `true`. */
+  console?: boolean;
   /** Resolver for request-scoped metadata appended to each record. */
   contextResolver?: LoggerContextResolver;
   /** Serialization limits used when sanitizing and stringifying arguments. */
@@ -112,15 +134,20 @@ class LoggerRuntime {
   }
 
   sanitize(value: unknown): unknown {
-    return sanitizeLogValue(value, this.options.serialize);
+    return sanitizeLogValue(maskObject(value), this.options.serialize);
   }
 
   stringify(value: unknown): string {
-    return stringifyLogValue(value, this.options.serialize);
+    return stringifyLogValue(maskObject(value), this.options.serialize);
   }
 
   notify(level: LogLevel, message: string, context: LogContext): void {
-    this.forwardNotification(level, message, context);
+    this.forwardNotification(level, message, {
+      ...context,
+      args: context.args.map((arg) => this.sanitize(arg)),
+      tags: context.tags ? this.sanitize(context.tags) as LogTags : undefined,
+      fields: context.fields ? this.sanitize(context.fields) as LogFields : undefined,
+    });
   }
 
   reset(): void {
@@ -137,6 +164,7 @@ class LoggerRuntime {
     args: unknown[],
     boundTags: LogTags = {},
     boundFields: LogFields = {},
+    eventName?: string,
   ): void {
     const minLevel = this.options.minLevel ?? LogLevel.DEBUG;
 
@@ -162,7 +190,11 @@ class LoggerRuntime {
       context,
       message: formattedMessage,
       args: sanitizedArgs,
+      eventName,
       requestId: runtimeContext?.requestId,
+      traceId: runtimeContext?.traceId,
+      tenantId: runtimeContext?.tenantId,
+      userPrincipalId: runtimeContext?.userPrincipalId,
       tags,
       fields,
     };
@@ -170,19 +202,21 @@ class LoggerRuntime {
     const formatted = formatter(record);
     const payload = sanitizedArgs.length > 0 ? [formatted, ...sanitizedArgs] : [formatted];
 
-    switch (level) {
-      case LogLevel.DEBUG:
-        console.debug(...payload);
-        break;
-      case LogLevel.INFO:
-        console.info(...payload);
-        break;
-      case LogLevel.WARN:
-        console.warn(...payload);
-        break;
-      case LogLevel.ERROR:
-        console.error(...payload);
-        break;
+    if (this.options.console !== false) {
+      switch (level) {
+        case LogLevel.DEBUG:
+          console.debug(...payload);
+          break;
+        case LogLevel.INFO:
+          console.info(...payload);
+          break;
+        case LogLevel.WARN:
+          console.warn(...payload);
+          break;
+        case LogLevel.ERROR:
+          console.error(...payload);
+          break;
+      }
     }
 
     for (const transport of this.transports) {
@@ -200,9 +234,14 @@ class LoggerRuntime {
       this.forwardNotification(level, message, {
         className: context,
         methodName: 'log',
+        eventName,
         args: sanitizedArgs,
         tags,
         fields,
+        requestId: runtimeContext?.requestId,
+        traceId: runtimeContext?.traceId,
+        tenantId: runtimeContext?.tenantId,
+        userPrincipalId: runtimeContext?.userPrincipalId,
         timestamp: new Date(),
       });
     }
@@ -251,7 +290,7 @@ function isSerializedError(value: unknown): value is SerializedError {
 const globalRuntime = new LoggerRuntime();
 
 /** Logger instance bound to a specific runtime configuration and context name. */
-export class ScopedLogger {
+export class ScopedLogger implements StructuredLoggerLike {
   constructor(
     private readonly runtime: LoggerRuntime,
     private readonly context: string,
@@ -273,6 +312,22 @@ export class ScopedLogger {
 
   error(message: string, ...args: unknown[]): void {
     this.runtime.emit(this.context, LogLevel.ERROR, message, args, this.tags, this.fields);
+  }
+
+  event<TMetadata extends LogMetadata>(
+    eventName: string,
+    metadata?: TMetadata,
+    level: LogLevel = LogLevel.INFO,
+  ): void {
+    this.runtime.emit(
+      this.context,
+      level,
+      eventName,
+      [],
+      this.tags,
+      { ...this.fields, ...(metadata ?? {}) },
+      eventName,
+    );
   }
 
   withTags(tags: LogTags): ScopedLogger {

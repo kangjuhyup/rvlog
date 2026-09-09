@@ -1,3 +1,4 @@
+import { LogLevel } from '@kangjuhyup/rvlog';
 import { nestLoggerSystem } from '../logger-system';
 
 const structuredLogger = nestLoggerSystem
@@ -12,22 +13,16 @@ const structuredLogger = nestLoggerSystem
   });
 
 export function logNestApplicationStarted(port: number) {
-  structuredLogger
-    .child({
-      tags: { action: 'application-started' },
-      fields: { port },
-    })
-    .info('nestjs example started with isolated LoggerSystem');
+  structuredLogger.event('application.started', { port });
 }
 
 export function logNestUserCreated(createdUser: { id: number; email: string }) {
-  structuredLogger
-    .child({
-      tags: { action: 'user-created' },
-      fields: {
-        userId: createdUser.id,
-        emailDomain: createdUser.email.split('@')[1] ?? 'unknown',
-      },
-    })
-    .info('nestjs example emitted structured metrics-style log');
+  structuredLogger.event(
+    'user.created',
+    {
+      userId: createdUser.id,
+      emailDomain: createdUser.email.split('@')[1] ?? 'unknown',
+    },
+    LogLevel.INFO,
+  );
 }

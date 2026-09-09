@@ -73,7 +73,7 @@ export function normalizeHeaders(
     normalized[key] = masked.has(key.toLowerCase()) ? '******' : value;
   }
 
-  return normalized;
+  return maskObject(normalized);
 }
 
 export function resolveRequestId(
@@ -91,6 +91,52 @@ export function resolveRequestId(
   }
 
   return randomUUID();
+}
+
+function resolveHeaderValue(
+  headers: Record<string, unknown> | undefined,
+  headerName: string,
+): string | undefined {
+  if (!headers) {
+    return undefined;
+  }
+
+  const matchingKey = Object.keys(headers).find(
+    (key) => key.toLowerCase() === headerName.toLowerCase(),
+  );
+  const rawHeader = matchingKey ? headers[matchingKey] : undefined;
+
+  if (typeof rawHeader === 'string' && rawHeader.trim().length > 0) {
+    return rawHeader.trim();
+  }
+
+  if (Array.isArray(rawHeader) && typeof rawHeader[0] === 'string') {
+    return rawHeader[0].trim() || undefined;
+  }
+
+  return undefined;
+}
+
+export function resolveTraceId(
+  request: HttpLikeRequest,
+  headerName: string,
+): string {
+  const explicitTraceId = resolveHeaderValue(request.headers, headerName);
+
+  if (explicitTraceId) {
+    return explicitTraceId;
+  }
+
+  const traceparent = resolveHeaderValue(request.headers, 'traceparent');
+  const traceparentMatch = traceparent
+    ? /^[0-9a-f]{2}-([0-9a-f]{32})-[0-9a-f]{16}-[0-9a-f]{2}(?:-.*)?$/iu.exec(traceparent)
+    : null;
+
+  if (traceparentMatch?.[1] && !/^0{32}$/u.test(traceparentMatch[1])) {
+    return traceparentMatch[1].toLowerCase();
+  }
+
+  return randomUUID().replace(/-/gu, '');
 }
 
 export function getHandlerParameterTypes(context: ExecutionContext): RouteHandlerMetadataType[] {
@@ -242,6 +288,8 @@ export function resolveHttpLoggingOptions(
     excludePaths: options?.excludePaths ?? [],
     maskHeaders: options?.maskHeaders ?? defaultMaskedHeaders(),
     requestIdHeader: options?.requestIdHeader ?? 'x-request-id',
+    traceIdHeader: options?.traceIdHeader ?? 'x-trace-id',
     setResponseHeader: options?.setResponseHeader ?? true,
+    contextEnricher: options?.contextEnricher ?? (() => undefined),
   };
 }

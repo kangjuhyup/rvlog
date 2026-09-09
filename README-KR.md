@@ -99,6 +99,50 @@ class BillingService {
 }
 ```
 
+## 구조화 이벤트
+
+문자열에 `key=value`를 조립하지 말고 `event(name, metadata, level?)`로 안정적인
+이벤트 이름과 타입이 있는 metadata를 전달할 수 있습니다.
+
+```ts
+import { Logger, LogLevel } from "@kangjuhyup/rvlog";
+
+interface AuthorizationDecisionMetadata {
+  action: "vote.read" | "vote.write";
+  allowed: boolean;
+  resourceId: string;
+}
+
+const logger = new Logger("VoteAuthorization");
+
+logger.event<AuthorizationDecisionMetadata>(
+  "authorization.decision",
+  { action: "vote.read", allowed: false, resourceId: "vote-42" },
+  LogLevel.WARN,
+);
+```
+
+transport에는 `eventName`과 마스킹된 metadata가 `fields`로 전달됩니다. 기존
+`debug/info/warn/error(message, ...args)` 호출 방식은 그대로 유지됩니다.
+
+대소문자와 관계없이 키 이름에 `authorization`, `cookie`, `password`, `token`,
+`secret`, `apiKey`, `privateKey`가 포함되면 중첩 객체와 배열에서도 전체 마스킹합니다.
+HTTP payload에도 같은 규칙이 적용됩니다.
+
+테스트에서는 `Logger.prototype`을 spy하지 않고 격리된 system과
+`InMemoryLogTransport`를 사용할 수 있습니다.
+
+```ts
+import { createLoggerSystem, InMemoryLogTransport } from "@kangjuhyup/rvlog";
+
+const sink = new InMemoryLogTransport();
+const system = createLoggerSystem({ console: false, transports: [sink] });
+const logger = system.createLogger("VoteAuthorization");
+
+logger.event("authorization.decision", { allowed: true });
+expect(sink.records[0]?.eventName).toBe("authorization.decision");
+```
+
 ## Pretty 출력
 
 기본 보기 좋은 콘솔 포맷은 `pretty: true`로 켤 수 있습니다. 일부 요소만 바꾸고 싶다면 전체 `formatter`를 직접 만들지 않고 `pretty`에 객체 옵션을 넘길 수 있습니다.
@@ -279,7 +323,7 @@ import {
   LogLevel,
   Logger,
   withLogging,
-} from 'rvlog';
+} from '@kangjuhyup/rvlog';
 
 const system = createLoggerSystem({
   minLevel: LogLevel.INFO,

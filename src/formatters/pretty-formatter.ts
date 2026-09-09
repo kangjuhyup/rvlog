@@ -69,6 +69,8 @@ export interface PrettyLogFormatterOptions {
   showTimestamp?: boolean;
   /** Whether to include the request id when present. Defaults to `true`. */
   showRequestId?: boolean;
+  /** Whether to include the trace id when present. Defaults to `true`. */
+  showTraceId?: boolean;
   /** Whether to include the logger context. Defaults to `true`. */
   showContext?: boolean;
 }
@@ -88,6 +90,7 @@ export function createPrettyLogFormatter(options: PrettyLogFormatterOptions = {}
       options.showLevel === false ? undefined : coloredLevelLabel,
       options.showTimestamp === false ? undefined : record.timestamp,
       options.showRequestId === false || !record.requestId ? undefined : `[${record.requestId}]`,
+      options.showTraceId === false || !record.traceId ? undefined : `[trace:${record.traceId}]`,
     ].filter(Boolean);
     const message = options.showContext === false
       ? record.message

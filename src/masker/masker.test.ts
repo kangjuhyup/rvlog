@@ -164,4 +164,33 @@ describe('maskObject - 객체 마스킹', () => {
     expect(masked.email).toBe('ho***@gmail.com');
     expect(masked.residentId).toBe('******');
   });
+
+  it('masks sensitive key families case-insensitively through nested objects and arrays', () => {
+    const input = {
+      Authorization: 'Bearer real-access-token',
+      profile: {
+        PASSWORD_HASH: 'hashed-password',
+        credentials: [
+          { refreshToken: 'refresh-token-value' },
+          { client_secret: 'client-secret-value' },
+          { cookie: 'session=real-session' },
+        ],
+      },
+      publicValue: 'visible',
+    };
+
+    expect(maskObject(input)).toEqual({
+      Authorization: '******',
+      profile: {
+        PASSWORD_HASH: '******',
+        credentials: [
+          { refreshToken: '******' },
+          { client_secret: '******' },
+          { cookie: '******' },
+        ],
+      },
+      publicValue: 'visible',
+    });
+    expect(input.Authorization).toBe('Bearer real-access-token');
+  });
 });

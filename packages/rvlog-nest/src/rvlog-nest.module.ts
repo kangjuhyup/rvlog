@@ -21,6 +21,7 @@ import {
   type RvlogHttpLoggingOptions,
 } from "./rvlog-http.options";
 import { RvlogRequestContextMiddleware } from './rvlog-request-context.middleware';
+import { installRvlogRequestContextResolver } from './rvlog-request-context';
 
 export interface RvlogNestModuleOptions {
   logger?: LoggerOptions;
@@ -37,6 +38,8 @@ export class RvlogNestModule implements NestModule {
     } else if (options.logger) {
       Logger.configure(options.logger);
     }
+
+    installRvlogRequestContextResolver(options.loggerSystem ?? Logger);
 
     return {
       module: RvlogNestModule,

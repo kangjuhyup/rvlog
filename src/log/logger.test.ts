@@ -257,6 +257,38 @@ describe('Logger', () => {
     expect(notify).toHaveBeenCalledTimes(1);
   });
 
+  it('masks sensitive keys before forwarding direct notifications', async () => {
+    const notify = vi.fn(async () => {});
+    const manager = new NotificationManager();
+    manager.notify = notify;
+    Logger.configure({ notification: manager });
+
+    Logger.notify(LogLevel.WARN, 'authorization.decision', {
+      className: 'VoteAuthorization',
+      methodName: 'recordDecision',
+      args: [{ Authorization: 'Bearer secret' }],
+      fields: { nested: { refreshToken: 'secret-token' } },
+      timestamp: new Date(),
+    });
+    await Promise.resolve();
+
+    expect(notify).toHaveBeenCalledWith(
+      LogLevel.WARN,
+      'authorization.decision',
+      expect.objectContaining({
+        args: [{ Authorization: '******' }],
+        fields: { nested: { refreshToken: '******' } },
+      }),
+    );
+  });
+
+  it('masks sensitive keys when stringifying shared payloads', () => {
+    expect(Logger.stringify({
+      Authorization: 'Bearer secret',
+      nested: [{ passwordHash: 'hash' }],
+    })).toBe('{"Authorization":"******","nested":[{"passwordHash":"******"}]}');
+  });
+
   it('exposes configured notification manager, transports, and context resolver - 설정된 정적 의존성을 조회할 수 있다', () => {
     const manager = new NotificationManager();
     const transport = { write: vi.fn() };

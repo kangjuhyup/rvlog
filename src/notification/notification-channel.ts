@@ -6,9 +6,14 @@ export type LogFields = Record<string, unknown>;
 export interface LogContext {
   className: string;
   methodName: string;
+  eventName?: string;
   args: unknown[];
   tags?: LogTags;
   fields?: LogFields;
+  requestId?: string;
+  traceId?: string;
+  tenantId?: string;
+  userPrincipalId?: string;
   error?: Error;
   duration?: string;
   timestamp: Date;

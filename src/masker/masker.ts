@@ -1,6 +1,8 @@
 import 'reflect-metadata';
 import { getMaskOptions, type MaskOptions } from './mask-options';
 
+const SENSITIVE_KEY_PATTERN = /(authorization|cookie|password|token|secret|api.?key|private.?key)/iu;
+
 function isObjectLike(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
 }
@@ -94,7 +96,7 @@ export function maskObject<T>(
     return visited.get(input) as T;
   }
 
-  if (input instanceof Date) {
+  if (input instanceof Date || input instanceof Error) {
     return input;
   }
 
@@ -121,6 +123,11 @@ export function maskObject<T>(
 
     if (maskOptions && value !== undefined && value !== null) {
       clone[key] = maskValue(String(value), maskOptions);
+      continue;
+    }
+
+    if (SENSITIVE_KEY_PATTERN.test(key) && value !== undefined && value !== null) {
+      clone[key] = '******';
       continue;
     }
 

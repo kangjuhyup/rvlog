@@ -1,6 +1,6 @@
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { describe, expect, it, vi, afterEach } from 'vitest';
-import { Logger, LogLevel } from '@kangjuhyup/rvlog';
+import { createLoggerSystem, Logger, LogLevel } from '@kangjuhyup/rvlog';
 import { RvlogRequestContextMiddleware } from './rvlog-request-context.middleware';
 import {
   RvlogHttpInterceptor,
@@ -69,18 +69,17 @@ describe('RvlogNestModule', () => {
 
   it('forRoot configures the provided LoggerSystem instead of the global Logger - 주입된 LoggerSystem이 있으면 그 쪽을 설정한다', () => {
     const configureSpy = vi.spyOn(Logger, 'configure').mockImplementation(() => {});
-    const system = {
-      configure: vi.fn(),
-    };
+    const system = createLoggerSystem();
     const systemConfigureSpy = vi.spyOn(system, 'configure');
 
     const dynamicModule = RvlogNestModule.forRoot({
-      loggerSystem: system as never,
+      loggerSystem: system,
       logger: { minLevel: LogLevel.INFO },
     });
 
     expect(configureSpy).not.toHaveBeenCalled();
     expect(systemConfigureSpy).toHaveBeenCalledWith({ minLevel: LogLevel.INFO });
+    expect(system.getContextResolver()).not.toBeNull();
     expect(dynamicModule.providers).toEqual(
       expect.arrayContaining([
         {

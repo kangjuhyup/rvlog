@@ -8,17 +8,19 @@ import { Logger, LoggerSystem } from '@kangjuhyup/rvlog';
 import {
   RVLOG_HTTP_LOGGER_SYSTEM,
   RVLOG_HTTP_LOGGING_OPTIONS,
+  type RvlogHttpContextRequest,
   type RvlogHttpLoggingOptions,
 } from './rvlog-http.options';
 import {
   resolveHttpRequestPath,
   resolveHttpLoggingOptions,
   resolveRequestId,
+  resolveTraceId,
   shouldExcludePath,
 } from './rvlog-http.utils';
 import {
   installRvlogRequestContextResolver,
-  runWithRvlogRequestContext,
+  runWithRvlogContext,
 } from './rvlog-request-context';
 import {
   initializeHttpRequestLogging,
@@ -26,7 +28,7 @@ import {
   type HttpLifecycleResponse,
 } from './rvlog-http.lifecycle';
 
-type HttpLikeRequest = {
+type HttpLikeRequest = RvlogHttpContextRequest & {
   method?: string;
   originalUrl?: string;
   url?: string;
@@ -57,15 +59,24 @@ export class RvlogRequestContextMiddleware implements NestMiddleware {
 
   use(request: HttpLikeRequest, response: HttpLikeResponse, next: NextFunction): void {
     const requestId = resolveRequestId(request, this.options.requestIdHeader);
+    const traceId = resolveTraceId(request, this.options.traceIdHeader);
     const path = resolveHttpRequestPath(request.originalUrl, request.url);
     const method = request.method ?? 'HTTP';
     const excluded = shouldExcludePath(path, this.options.excludePaths);
 
     if (this.options.setResponseHeader) {
       response.setHeader?.(this.options.requestIdHeader, requestId);
+      response.setHeader?.(this.options.traceIdHeader, traceId);
     }
 
-    runWithRvlogRequestContext({ requestId }, () => {
+    let enrichedContext = {};
+    try {
+      enrichedContext = this.options.contextEnricher(request) ?? {};
+    } catch {
+      // Context enrichment must not interrupt request processing.
+    }
+
+    runWithRvlogContext({ ...enrichedContext, requestId, traceId }, () => {
       initializeHttpRequestLogging(request, {
         requestId,
         method,
