@@ -30,6 +30,24 @@ describe('prettyLogFormatter', () => {
     ).toBe('[INF] 2026:04:10 12:34:56 [req-123] HTTP :: POST /users called');
   });
 
+  it('renders traceId and allows hiding it', () => {
+    const record = {
+      timestamp: '2026-09-09 10:00:00',
+      level: LogLevel.INFO,
+      context: 'VoteService',
+      message: 'authorization.decision',
+      args: [],
+      traceId: 'trace-1',
+    };
+
+    expect(createPrettyLogFormatter({ showTimestamp: false })(record)).toContain(
+      '[trace:trace-1]',
+    );
+    expect(
+      createPrettyLogFormatter({ showTimestamp: false, showTraceId: false })(record),
+    ).not.toContain('trace-1');
+  });
+
   it('customizes pretty output parts - pretty 출력 요소를 커스텀한다', () => {
     const formatter = createPrettyLogFormatter({
       separator: '->',

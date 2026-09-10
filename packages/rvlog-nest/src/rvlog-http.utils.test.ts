@@ -19,6 +19,7 @@ import {
   resolveHttpLoggingOptions,
   resolveHttpRequestPath,
   resolveRequestId,
+  resolveTraceId,
   shouldExcludePath,
 } from './rvlog-http.utils';
 
@@ -65,8 +66,18 @@ describe('rvlog http utils', () => {
       Authorization: '******',
       foo: 'bar',
     });
+    expect(normalizeHeaders({ Authorization: 'token' }, [])).toEqual({
+      Authorization: '******',
+    });
     expect(resolveRequestId({ headers: { 'x-request-id': 'req-1' } }, 'x-request-id')).toBe('req-1');
     expect(resolveRequestId({ headers: {} }, 'x-request-id')).toMatch(/^[0-9a-f-]{36}$/i);
+    expect(resolveTraceId({ headers: { 'x-trace-id': 'trace-1' } }, 'x-trace-id')).toBe('trace-1');
+    expect(
+      resolveTraceId(
+        { headers: { traceparent: '00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01' } },
+        'x-trace-id',
+      ),
+    ).toBe('4bf92f3577b34da6a3ce929d0e0e4736');
     expect(resolveHttpRequestPath('/votes?access_token=secret', '/fallback')).toBe('/votes');
     expect(resolveHttpRequestPath(undefined, '/fallback#fragment')).toBe('/fallback');
     expect(defaultMaskedHeaders()).toContain('authorization');
@@ -76,6 +87,7 @@ describe('rvlog http utils', () => {
         level: LogLevel.INFO,
         logBody: true,
         setResponseHeader: true,
+        traceIdHeader: 'x-trace-id',
       }),
     );
   });

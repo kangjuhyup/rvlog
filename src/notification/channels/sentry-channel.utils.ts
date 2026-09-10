@@ -19,6 +19,11 @@ export function buildSentryLogAttributes(context: LogContext): Record<string, un
   return {
     className: context.className,
     methodName: context.methodName,
+    eventName: context.eventName,
+    requestId: context.requestId,
+    traceId: context.traceId,
+    tenantId: context.tenantId,
+    userPrincipalId: context.userPrincipalId,
     args: context.args,
     tags: context.tags,
     fields: context.fields,

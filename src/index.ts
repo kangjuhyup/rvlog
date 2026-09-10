@@ -10,12 +10,14 @@ export {
   type LoggerLike,
   LoggerSystem,
   ScopedLogger,
+  type StructuredLoggerLike,
   createLoggerSystem,
   defineLoggerOptions,
   type LoggerConfiguration,
   type LoggerOptions,
   type LoggerContextResolver,
   type LoggerContextValue,
+  type LogMetadata,
   type LogRecord,
   type LogFormatter,
   type LogTransport,
@@ -36,6 +38,9 @@ export {
 
 /** Default single-line formatter for machine-friendly log output. */
 export { defaultLogFormatter } from './formatters/default-formatter';
+
+/** In-memory transport for isolated consumer tests. */
+export { InMemoryLogTransport } from './transports/in-memory-log-transport';
 
 /** Pretty formatter for human-friendly console output. */
 export {

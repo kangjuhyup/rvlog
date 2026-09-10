@@ -1,6 +1,7 @@
 {
   "name": "@kangjuhyup/rvlog",
   "version": "0.2.0",
+  "packageManager": "pnpm@10.34.5",
   "description": "Framework-agnostic TypeScript logging library with decorators, field masking, and error notifications",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
